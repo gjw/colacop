@@ -1,0 +1,798 @@
+# Extracted facts from discovery sources.
+# This is intentionally lightweight; facts are claims with provenance, not committed requirements.
+
+facts:
+  - id: F-001
+    statement: "TTB reviews about 150,000 label applications per year."
+    claim_kind: stated
+    fact_type: volume_or_scale_fact
+    source:
+      id: S-001
+      file: discovery/sources/S-001-sarah-chen-deputy-director-label-compliance.md
+      speaker: Sarah Chen
+      speaker_role: Deputy Director of Label Compliance
+      source_context: "Conducted Tuesday, 3:15 PM"
+      excerpt: "So the TTB reviews about 150,000 label applications a year."
+    authority:
+      scope: operations
+      level: high
+      rationale: "Sarah manages or represents the label compliance function."
+    tags:
+      - label_review
+      - operational_volume
+
+  - id: F-002
+    statement: "A team of 47 agents handles TTB label application reviews."
+    claim_kind: stated
+    fact_type: staffing_fact
+    source:
+      id: S-001
+      file: discovery/sources/S-001-sarah-chen-deputy-director-label-compliance.md
+      speaker: Sarah Chen
+      speaker_role: Deputy Director of Label Compliance
+      source_context: "Conducted Tuesday, 3:15 PM"
+      excerpt: "Our team of 47 agents handles all of them."
+    authority:
+      scope: operations
+      level: high
+    tags:
+      - label_review
+      - staffing
+
+  - id: F-003
+    statement: "The current label review workflow has been largely unchanged since the COLA system went online in 2003."
+    claim_kind: stated
+    fact_type: historical_context
+    source:
+      id: S-001
+      file: discovery/sources/S-001-sarah-chen-deputy-director-label-compliance.md
+      speaker: Sarah Chen
+      speaker_role: Deputy Director of Label Compliance
+      source_context: "Conducted Tuesday, 3:15 PM"
+      excerpt: "We've been doing things basically the same way since the COLA system went online in 2003."
+    authority:
+      scope: workflow
+      level: medium
+    tags:
+      - cola
+      - workflow_history
+
+  - id: F-004
+    statement: "Agents review label applications by comparing submitted label artwork against application data."
+    claim_kind: stated
+    fact_type: workflow_fact
+    source:
+      id: S-001
+      file: discovery/sources/S-001-sarah-chen-deputy-director-label-compliance.md
+      speaker: Sarah Chen
+      speaker_role: Deputy Director of Label Compliance
+      source_context: "Conducted Tuesday, 3:15 PM"
+      excerpt: "An agent pulls up an application, looks at the label artwork, and checks that what's on the label matches what's in the application."
+    authority:
+      scope: workflow
+      level: high
+    tags:
+      - label_review
+      - verification
+      - agent_workflow
+
+  - id: F-005
+    statement: "Common review checks include brand name, ABV, and government warning presence."
+    claim_kind: stated
+    fact_type: workflow_fact
+    source:
+      id: S-001
+      file: discovery/sources/S-001-sarah-chen-deputy-director-label-compliance.md
+      speaker: Sarah Chen
+      speaker_role: Deputy Director of Label Compliance
+      source_context: "Conducted Tuesday, 3:15 PM"
+      excerpt: "Brand name matches? Check. ABV is correct? Check. Government warning is there? Check."
+    authority:
+      scope: workflow
+      level: high
+    tags:
+      - label_review
+      - brand_name
+      - alcohol_content
+      - government_warning
+
+  - id: F-006
+    statement: "A simple label application review takes about 5 to 10 minutes, and reviews take longer when issues are present."
+    claim_kind: stated
+    fact_type: workflow_timing_fact
+    source:
+      id: S-001
+      file: discovery/sources/S-001-sarah-chen-deputy-director-label-compliance.md
+      speaker: Sarah Chen
+      speaker_role: Deputy Director of Label Compliance
+      source_context: "Conducted Tuesday, 3:15 PM"
+      excerpt: "It takes maybe 5-10 minutes per application for a simple one, longer if there are issues."
+    authority:
+      scope: workflow
+      level: high
+    tags:
+      - label_review
+      - review_time
+
+  - id: F-007
+    statement: "A substantial portion of agent review work is routine matching between application data and label text."
+    claim_kind: stated
+    fact_type: pain_point
+    source:
+      id: S-001
+      file: discovery/sources/S-001-sarah-chen-deputy-director-label-compliance.md
+      speaker: Sarah Chen
+      speaker_role: Deputy Director of Label Compliance
+      source_context: "Conducted Tuesday, 3:15 PM"
+      excerpt: "A lot of what we do is just... matching. Like literally just making sure the number on the form is the same as the number on the label."
+    authority:
+      scope: workflow
+      level: high
+    tags:
+      - label_review
+      - matching
+      - automation_opportunity
+
+  - id: F-008
+    statement: "Agents spend about half their day on data-entry-style verification rather than more complex analysis."
+    claim_kind: stated
+    fact_type: pain_point
+    source:
+      id: S-001
+      file: discovery/sources/S-001-sarah-chen-deputy-director-label-compliance.md
+      speaker: Sarah Chen
+      speaker_role: Deputy Director of Label Compliance
+      source_context: "Conducted Tuesday, 3:15 PM"
+      excerpt: "My agents spend half their day doing what's essentially data entry verification."
+    authority:
+      scope: workflow
+      level: high
+    tags:
+      - label_review
+      - agent_workload
+      - automation_opportunity
+
+  - id: F-009
+    statement: "A previous scanning vendor pilot was rejected by agents because label processing could take 30 to 40 seconds per label."
+    claim_kind: stated
+    fact_type: historical_context
+    source:
+      id: S-001
+      file: discovery/sources/S-001-sarah-chen-deputy-director-label-compliance.md
+      speaker: Sarah Chen
+      speaker_role: Deputy Director of Label Compliance
+      source_context: "Conducted Tuesday, 3:15 PM"
+      excerpt: "The system would take 30, 40 seconds sometimes to process a single label. Our agents just went back to doing it by eye."
+    authority:
+      scope: adoption
+      level: high
+    tags:
+      - latency
+      - adoption_risk
+      - prior_pilot
+
+  - id: F-010
+    statement: "Automated label verification results need to return in about 5 seconds to be adopted by agents."
+    claim_kind: stated_requirement
+    fact_type: performance_constraint
+    source:
+      id: S-001
+      file: discovery/sources/S-001-sarah-chen-deputy-director-label-compliance.md
+      speaker: Sarah Chen
+      speaker_role: Deputy Director of Label Compliance
+      source_context: "Conducted Tuesday, 3:15 PM"
+      excerpt: "If we can't get results back in about 5 seconds, nobody's going to use it."
+    authority:
+      scope: adoption
+      level: high
+    tags:
+      - latency
+      - usability
+      - adoption_risk
+
+  - id: F-011
+    statement: "Compliance agents have widely varying levels of technical comfort."
+    claim_kind: stated
+    fact_type: user_characteristic
+    source:
+      id: S-001
+      file: discovery/sources/S-001-sarah-chen-deputy-director-label-compliance.md
+      speaker: Sarah Chen
+      speaker_role: Deputy Director of Label Compliance
+      source_context: "Conducted Tuesday, 3:15 PM"
+      excerpt: "The agents really vary in their tech comfort level."
+    authority:
+      scope: users
+      level: high
+    tags:
+      - users
+      - technical_comfort
+      - usability
+
+  - id: F-012
+    statement: "About half of the compliance agent team is over 50."
+    claim_kind: stated
+    fact_type: user_characteristic
+    source:
+      id: S-001
+      file: discovery/sources/S-001-sarah-chen-deputy-director-label-compliance.md
+      speaker: Sarah Chen
+      speaker_role: Deputy Director of Label Compliance
+      source_context: "Conducted Tuesday, 3:15 PM"
+      excerpt: "Half our team is over 50."
+    authority:
+      scope: users
+      level: high
+    tags:
+      - users
+      - demographics
+      - usability
+
+  - id: F-013
+    statement: "The prototype interface should be simple, obvious, and easy to use without hunting for controls."
+    claim_kind: stated_requirement
+    fact_type: usability_constraint
+    source:
+      id: S-001
+      file: discovery/sources/S-001-sarah-chen-deputy-director-label-compliance.md
+      speaker: Sarah Chen
+      speaker_role: Deputy Director of Label Compliance
+      source_context: "Conducted Tuesday, 3:15 PM"
+      excerpt: "Clean, obvious, no hunting for buttons."
+    authority:
+      scope: usability
+      level: high
+    tags:
+      - usability
+      - interface_design
+      - adoption_risk
+
+  - id: F-014
+    statement: "During peak season, large importers may submit 200 to 300 label applications at once."
+    claim_kind: stated
+    fact_type: volume_or_scale_fact
+    source:
+      id: S-001
+      file: discovery/sources/S-001-sarah-chen-deputy-director-label-compliance.md
+      speaker: Sarah Chen
+      speaker_role: Deputy Director of Label Compliance
+      source_context: "Conducted Tuesday, 3:15 PM"
+      excerpt: "During peak season, we get these big importers who dump 200, 300 label applications on us at once."
+    authority:
+      scope: operations
+      level: high
+    tags:
+      - batch_workflow
+      - operational_volume
+      - peak_season
+
+  - id: F-015
+    statement: "Current workflow requires label applications to be processed one at a time."
+    claim_kind: stated
+    fact_type: workflow_pain_point
+    source:
+      id: S-001
+      file: discovery/sources/S-001-sarah-chen-deputy-director-label-compliance.md
+      speaker: Sarah Chen
+      speaker_role: Deputy Director of Label Compliance
+      source_context: "Conducted Tuesday, 3:15 PM"
+      excerpt: "Right now we literally have to process them one at a time."
+    authority:
+      scope: workflow
+      level: high
+    tags:
+      - batch_workflow
+      - agent_workflow
+      - pain_point
+
+  - id: F-016
+    statement: "Batch upload support would be valuable for handling large groups of label applications."
+    claim_kind: feature_request
+    fact_type: feature_request
+    source:
+      id: S-001
+      file: discovery/sources/S-001-sarah-chen-deputy-director-label-compliance.md
+      speaker: Sarah Chen
+      speaker_role: Deputy Director of Label Compliance
+      source_context: "Conducted Tuesday, 3:15 PM"
+      excerpt: "If there was some way to handle batch uploads, that would be huge."
+    authority:
+      scope: workflow
+      level: high
+    tags:
+      - batch_upload
+      - batch_workflow
+      - feature_request
+    related_people:
+      - name: Janet
+        context: "Seattle office"
+        relationship: "Mentioned by Sarah as someone who has requested batch upload support."
+
+  - id: F-017
+    statement: "The current technical environment runs on Azure after a migration in 2019."
+    claim_kind: stated
+    fact_type: technical_context
+    source:
+      id: S-002
+      file: discovery/sources/S-002-marcus-williams-it-systems-administrator.md
+      speaker: Marcus Williams
+      speaker_role: IT Systems Administrator
+      source_context: "Coffee chat, Thursday morning"
+      excerpt: "We're on Azure now after the migration in 2019."
+    authority:
+      scope: infrastructure
+      level: high
+      rationale: "Marcus is the IT Systems Administrator describing the technical landscape."
+    tags:
+      - azure
+      - infrastructure
+      - technical_context
+
+  - id: F-018
+    statement: "FedRAMP certification was a significant burden during the Azure migration."
+    claim_kind: stated
+    fact_type: organizational_constraint
+    source:
+      id: S-002
+      file: discovery/sources/S-002-marcus-williams-it-systems-administrator.md
+      speaker: Marcus Williams
+      speaker_role: IT Systems Administrator
+      source_context: "Coffee chat, Thursday morning"
+      excerpt: "That was a whole thing—don't get me started on the FedRAMP certification process. Took 18 months just for the paperwork."
+    authority:
+      scope: infrastructure
+      level: high
+    tags:
+      - fedramp
+      - compliance
+      - deployment_risk
+
+  - id: F-019
+    statement: "The COLA system is built on .NET."
+    claim_kind: stated
+    fact_type: technical_context
+    source:
+      id: S-002
+      file: discovery/sources/S-002-marcus-williams-it-systems-administrator.md
+      speaker: Marcus Williams
+      speaker_role: IT Systems Administrator
+      source_context: "Coffee chat, Thursday morning"
+      excerpt: "The COLA system is built on .NET."
+    authority:
+      scope: infrastructure
+      level: high
+    tags:
+      - cola
+      - dotnet
+      - technical_context
+
+  - id: F-020
+    statement: "A full COLA system rebuild has been discussed but was not pursued after an expensive contractor assessment."
+    claim_kind: stated
+    fact_type: historical_context
+    source:
+      id: S-002
+      file: discovery/sources/S-002-marcus-williams-it-systems-administrator.md
+      speaker: Marcus Williams
+      speaker_role: IT Systems Administrator
+      source_context: "Coffee chat, Thursday morning"
+      excerpt: "We had a contractor come in last summer to do an assessment and they quoted us $4.2 million for a full rebuild. That went nowhere, obviously."
+    authority:
+      scope: infrastructure
+      level: medium
+    tags:
+      - cola
+      - modernization
+      - budget_constraint
+
+  - id: F-021
+    statement: "The prototype is not expected to integrate directly with COLA."
+    claim_kind: stated_requirement
+    fact_type: scope_constraint
+    source:
+      id: S-002
+      file: discovery/sources/S-002-marcus-williams-it-systems-administrator.md
+      speaker: Marcus Williams
+      speaker_role: IT Systems Administrator
+      source_context: "Coffee chat, Thursday morning"
+      excerpt: "For this prototype, we're not looking to integrate with COLA directly—that's a whole different beast with its own authorization requirements."
+    authority:
+      scope: prototype_scope
+      level: high
+    tags:
+      - prototype
+      - cola
+      - integration
+      - scope
+
+  - id: F-022
+    statement: "The prototype should be treated as a standalone proof of concept that may inform future procurement decisions."
+    claim_kind: stated
+    fact_type: project_context
+    source:
+      id: S-002
+      file: discovery/sources/S-002-marcus-williams-it-systems-administrator.md
+      speaker: Marcus Williams
+      speaker_role: IT Systems Administrator
+      source_context: "Coffee chat, Thursday morning"
+      excerpt: "Think of this as a standalone proof-of-concept that could potentially inform future procurement decisions."
+    authority:
+      scope: prototype_scope
+      level: high
+    tags:
+      - prototype
+      - proof_of_concept
+      - procurement
+
+  - id: F-023
+    statement: "Production deployment would need to address PII considerations and document retention policies."
+    claim_kind: stated
+    fact_type: production_risk
+    source:
+      id: S-002
+      file: discovery/sources/S-002-marcus-williams-it-systems-administrator.md
+      speaker: Marcus Williams
+      speaker_role: IT Systems Administrator
+      source_context: "Coffee chat, Thursday morning"
+      excerpt: "Security-wise, we'd need to be careful with any production deployment—there's PII considerations, document retention policies, the usual federal compliance stuff."
+    authority:
+      scope: security
+      level: high
+    tags:
+      - security
+      - pii
+      - document_retention
+      - production
+
+  - id: F-024
+    statement: "The take-home prototype should not store sensitive information."
+    claim_kind: stated_requirement
+    fact_type: security_constraint
+    source:
+      id: S-002
+      file: discovery/sources/S-002-marcus-williams-it-systems-administrator.md
+      speaker: Marcus Williams
+      speaker_role: IT Systems Administrator
+      source_context: "Coffee chat, Thursday morning"
+      excerpt: "But for a prototype? Just don't do anything crazy. We're not storing anything sensitive for this exercise."
+    authority:
+      scope: security
+      level: high
+    tags:
+      - security
+      - sensitive_data
+      - prototype
+
+  - id: F-025
+    statement: "The network blocks outbound traffic to many domains."
+    claim_kind: stated
+    fact_type: technical_constraint
+    source:
+      id: S-002
+      file: discovery/sources/S-002-marcus-williams-it-systems-administrator.md
+      speaker: Marcus Williams
+      speaker_role: IT Systems Administrator
+      source_context: "Coffee chat, Thursday morning"
+      excerpt: "Our network blocks outbound traffic to a lot of domains, so keep that in mind if you're thinking about cloud APIs."
+    authority:
+      scope: infrastructure
+      level: high
+    tags:
+      - network
+      - cloud_api
+      - technical_constraint
+
+  - id: F-026
+    statement: "Cloud ML endpoint dependencies caused failures during the prior scanning vendor pilot."
+    claim_kind: stated
+    fact_type: technical_risk
+    source:
+      id: S-002
+      file: discovery/sources/S-002-marcus-williams-it-systems-administrator.md
+      speaker: Marcus Williams
+      speaker_role: IT Systems Administrator
+      source_context: "Coffee chat, Thursday morning"
+      excerpt: "During the scanning vendor pilot, half their features didn't work because our firewall blocked connections to their ML endpoints."
+    authority:
+      scope: infrastructure
+      level: high
+    tags:
+      - network
+      - cloud_api
+      - machine_learning
+      - deployment_risk
+
+  - id: F-027
+    statement: "Senior agents may be skeptical of modernization projects because prior projects have increased friction."
+    claim_kind: stated
+    fact_type: adoption_risk
+    source:
+      id: S-003
+      file: discovery/sources/S-003-dave-morrison-senior-compliance-agent.md
+      speaker: Dave Morrison
+      speaker_role: Senior Compliance Agent
+      source_context: "Brief hallway conversation"
+      excerpt: "I've seen a lot of these 'modernization' projects come and go."
+    authority:
+      scope: user_adoption
+      level: medium
+      rationale: "Dave is an experienced current user describing his own adoption concerns."
+    tags:
+      - user_adoption
+      - modernization
+      - senior_agents
+
+  - id: F-028
+    statement: "Automation that is hard to navigate can increase support burden instead of reducing it."
+    claim_kind: stated
+    fact_type: adoption_risk
+    source:
+      id: S-003
+      file: discovery/sources/S-003-dave-morrison-senior-compliance-agent.md
+      speaker: Dave Morrison
+      speaker_role: Senior Compliance Agent
+      source_context: "Brief hallway conversation"
+      excerpt: "Supposed to reduce call volume. We ended up with more calls because nobody could figure out how to navigate it."
+    authority:
+      scope: user_adoption
+      level: medium
+    tags:
+      - usability
+      - adoption_risk
+      - support_burden
+
+  - id: F-029
+    statement: "Label review includes nuanced judgment and cannot be handled entirely by literal pattern matching."
+    claim_kind: stated
+    fact_type: domain_judgment_fact
+    source:
+      id: S-003
+      file: discovery/sources/S-003-dave-morrison-senior-compliance-agent.md
+      speaker: Dave Morrison
+      speaker_role: Senior Compliance Agent
+      source_context: "Brief hallway conversation"
+      excerpt: "The thing about label review is there's nuance. You can't just pattern match everything."
+    authority:
+      scope: compliance_review
+      level: high
+      rationale: "Dave is a senior compliance agent with 28 years of direct review experience."
+    tags:
+      - label_review
+      - domain_judgment
+      - matching
+
+  - id: F-030
+    statement: "Brand-name matching may need to tolerate casing and punctuation differences when the label and application clearly refer to the same brand."
+    claim_kind: stated
+    fact_type: domain_judgment_fact
+    source:
+      id: S-003
+      file: discovery/sources/S-003-dave-morrison-senior-compliance-agent.md
+      speaker: Dave Morrison
+      speaker_role: Senior Compliance Agent
+      source_context: "Brief hallway conversation"
+      excerpt: "The brand name was 'STONE'S THROW' on the label but 'Stone's Throw' in the application. Technically a mismatch? Sure. But it's obviously the same thing."
+    authority:
+      scope: compliance_review
+      level: high
+    tags:
+      - label_review
+      - brand_name
+      - fuzzy_matching
+      - domain_judgment
+
+  - id: F-031
+    statement: "A useful tool should help agents move through their queues faster without making their workflow harder."
+    claim_kind: stated_requirement
+    fact_type: usability_constraint
+    source:
+      id: S-003
+      file: discovery/sources/S-003-dave-morrison-senior-compliance-agent.md
+      speaker: Dave Morrison
+      speaker_role: Senior Compliance Agent
+      source_context: "Brief hallway conversation"
+      excerpt: "If something can help me get through my queue faster, great. Just don't make my life harder in the process."
+    authority:
+      scope: user_adoption
+      level: high
+    tags:
+      - usability
+      - agent_workflow
+      - adoption_risk
+
+  - id: F-032
+    statement: "Junior agents currently perform label checks manually using a printed checklist."
+    claim_kind: stated
+    fact_type: workflow_fact
+    source:
+      id: S-004
+      file: discovery/sources/S-004-jenny-park-junior-compliance-agent.md
+      speaker: Jenny Park
+      speaker_role: Junior Compliance Agent
+      source_context: "Teams call, Friday afternoon"
+      excerpt: "I literally have a printed checklist on my desk that I go through for every label."
+    authority:
+      scope: workflow
+      level: high
+      rationale: "Jenny is a current compliance agent describing her own workflow."
+    tags:
+      - label_review
+      - manual_workflow
+      - checklist
+
+  - id: F-033
+    statement: "Manual label checks include brand name, ABV, and warning statement checks."
+    claim_kind: stated
+    fact_type: workflow_fact
+    source:
+      id: S-004
+      file: discovery/sources/S-004-jenny-park-junior-compliance-agent.md
+      speaker: Jenny Park
+      speaker_role: Junior Compliance Agent
+      source_context: "Teams call, Friday afternoon"
+      excerpt: "Brand name—check with my eyes. ABV—check with my eyes. Warning statement—check with my eyes."
+    authority:
+      scope: workflow
+      level: high
+    tags:
+      - label_review
+      - brand_name
+      - alcohol_content
+      - government_warning
+
+  - id: F-034
+    statement: "Government warning verification is more complex than simple presence detection."
+    claim_kind: stated
+    fact_type: domain_rule_claim
+    source:
+      id: S-004
+      file: discovery/sources/S-004-jenny-park-junior-compliance-agent.md
+      speaker: Jenny Park
+      speaker_role: Junior Compliance Agent
+      source_context: "Teams call, Friday afternoon"
+      excerpt: "The one thing I'd say is the warning statement check is actually trickier than it sounds."
+    authority:
+      scope: compliance_review
+      level: medium
+    tags:
+      - government_warning
+      - compliance_review
+      - domain_rule
+
+  - id: F-035
+    statement: "The government warning statement must match the required wording exactly."
+    claim_kind: stated
+    fact_type: domain_rule_claim
+    source:
+      id: S-004
+      file: discovery/sources/S-004-jenny-park-junior-compliance-agent.md
+      speaker: Jenny Park
+      speaker_role: Junior Compliance Agent
+      source_context: "Teams call, Friday afternoon"
+      excerpt: "It has to be exact. Like, word-for-word."
+    authority:
+      scope: compliance_review
+      level: medium
+      rationale: "Jenny is a current reviewer, but this should be validated against TTB regulation."
+    tags:
+      - government_warning
+      - exact_matching
+      - compliance_rule_candidate
+
+  - id: F-036
+    statement: "The 'GOVERNMENT WARNING:' prefix must be all caps and bold."
+    claim_kind: stated
+    fact_type: domain_rule_claim
+    source:
+      id: S-004
+      file: discovery/sources/S-004-jenny-park-junior-compliance-agent.md
+      speaker: Jenny Park
+      speaker_role: Junior Compliance Agent
+      source_context: "Teams call, Friday afternoon"
+      excerpt: "The 'GOVERNMENT WARNING:' part has to be in all caps and bold."
+    authority:
+      scope: compliance_review
+      level: medium
+      rationale: "Jenny is a current reviewer, but this should be validated against TTB regulation."
+    tags:
+      - government_warning
+      - typography
+      - exact_matching
+      - compliance_rule_candidate
+
+  - id: F-037
+    statement: "Applicants may submit warning statements with smaller font, different wording, or placement that makes them hard to notice."
+    claim_kind: stated
+    fact_type: data_quality_issue
+    source:
+      id: S-004
+      file: discovery/sources/S-004-jenny-park-junior-compliance-agent.md
+      speaker: Jenny Park
+      speaker_role: Junior Compliance Agent
+      source_context: "Teams call, Friday afternoon"
+      excerpt: "People try to get creative with the warning all the time. Smaller font, different wording, burying it in tiny text."
+    authority:
+      scope: compliance_review
+      level: high
+    tags:
+      - government_warning
+      - readability
+      - data_quality
+
+  - id: F-038
+    statement: "A warning statement using 'Government Warning' in title case instead of all caps may be rejected."
+    claim_kind: stated
+    fact_type: domain_rule_claim
+    source:
+      id: S-004
+      file: discovery/sources/S-004-jenny-park-junior-compliance-agent.md
+      speaker: Jenny Park
+      speaker_role: Junior Compliance Agent
+      source_context: "Teams call, Friday afternoon"
+      excerpt: "I caught one last month where they used 'Government Warning' in title case instead of all caps. Rejected."
+    authority:
+      scope: compliance_review
+      level: medium
+      rationale: "Jenny reports a recent review outcome, but the rule should be validated against TTB regulation."
+    tags:
+      - government_warning
+      - capitalization
+      - compliance_rule_candidate
+
+  - id: F-039
+    statement: "Submitted label images may be photographed at bad angles, under poor lighting, or with glare."
+    claim_kind: stated
+    fact_type: data_quality_issue
+    source:
+      id: S-004
+      file: discovery/sources/S-004-jenny-park-junior-compliance-agent.md
+      speaker: Jenny Park
+      speaker_role: Junior Compliance Agent
+      source_context: "Teams call, Friday afternoon"
+      excerpt: "I've seen labels that are photographed at weird angles, or the lighting is bad, or there's glare on the bottle."
+    authority:
+      scope: input_quality
+      level: high
+    tags:
+      - image_quality
+      - glare
+      - lighting
+      - data_quality
+
+  - id: F-040
+    statement: "If an agent cannot read a submitted label image, the current workflow is to reject it and request a better image."
+    claim_kind: stated
+    fact_type: workflow_fact
+    source:
+      id: S-004
+      file: discovery/sources/S-004-jenny-park-junior-compliance-agent.md
+      speaker: Jenny Park
+      speaker_role: Junior Compliance Agent
+      source_context: "Teams call, Friday afternoon"
+      excerpt: "Right now if an agent can't read the label they just reject it and ask for a better image."
+    authority:
+      scope: workflow
+      level: high
+    tags:
+      - image_quality
+      - rejection_workflow
+      - label_review
+
+  - id: F-041
+    statement: "Handling imperfect label images would be valuable, but may be outside prototype scope."
+    claim_kind: stated_preference
+    fact_type: feature_request
+    source:
+      id: S-004
+      file: discovery/sources/S-004-jenny-park-junior-compliance-agent.md
+      speaker: Jenny Park
+      speaker_role: Junior Compliance Agent
+      source_context: "Teams call, Friday afternoon"
+      excerpt: "This is maybe out of scope for a prototype—but it would be amazing if the tool could handle images that aren't perfectly shot."
+    authority:
+      scope: user_preference
+      level: medium
+    tags:
+      - image_quality
+      - feature_request
+      - prototype_scope

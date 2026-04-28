@@ -1,0 +1,183 @@
+# Requirements derived from discovery facts.
+# Requirements are design commitments; facts remain the provenance-bearing source claims.
+
+requirements:
+  - id: REQ-001
+    title: "Support fast, simple single-label review"
+    statement: "The prototype must let a compliance agent review a single label against submitted application fields through a simple, obvious workflow that reduces manual comparison effort."
+    priority: must
+    status: proposed
+    supported_by:
+      - F-001
+      - F-002
+      - F-004
+      - F-006
+      - F-013
+    rationale: "The review operation is high-volume, handled by a limited team, and currently depends on manual comparison against label artwork."
+    candidate_features:
+      - "Review queue"
+      - "Single-label review detail view"
+      - "Side-by-side application data and extracted label data"
+
+  - id: REQ-002
+    title: "Keep the agent experience low-friction"
+    statement: "The prototype must be usable by agents with varying technical comfort, with obvious controls, minimal navigation, and no workflow steps that make review slower or harder than manual review."
+    priority: must
+    status: proposed
+    supported_by:
+      - F-011
+      - F-012
+      - F-013
+      - F-027
+      - F-028
+      - F-031
+    rationale: "Adoption depends on the tool fitting the existing agent workflow and avoiding the usability failures of past modernization efforts."
+    candidate_features:
+      - "Queue-first interface"
+      - "Clear status labels"
+      - "Minimal required controls per review"
+
+  - id: REQ-003
+    title: "Avoid blocking review on long-running analysis"
+    statement: "The prototype must process submitted label files asynchronously so verification results are available before or shortly after an agent opens them for review."
+    priority: must
+    status: proposed
+    supported_by:
+      - F-009
+      - F-010
+      - F-014
+      - F-015
+      - F-016
+      - F-031
+    rationale: "The prior vendor pilot failed because agents had to wait interactively for slow processing; asynchronous processing also supports batch intake."
+    acceptance_notes:
+      - "Preprocessed labels should show results immediately in the review UI."
+      - "Labels submitted interactively should enter the same processing queue and expose status while processing."
+    candidate_features:
+      - "File ingestion watcher"
+      - "Background processing worker"
+      - "Queue status view"
+
+  - id: REQ-004
+    title: "Verify core label fields against application data"
+    statement: "The prototype must compare extracted label information against provided application fields for at least brand name, alcohol content, and government warning."
+    priority: must
+    status: proposed
+    supported_by:
+      - F-004
+      - F-005
+      - F-007
+      - F-008
+      - F-033
+    rationale: "The main automation opportunity is reducing routine matching between application data and information visible on the label."
+    candidate_features:
+      - "Label field extraction"
+      - "Application field input or fixture data"
+      - "Per-field verification results"
+
+  - id: REQ-005
+    title: "Apply field-specific matching rules"
+    statement: "The prototype must apply field-specific comparison behavior: tolerant matching for brand-name variations where appropriate, and strict matching for government warning text and capitalization."
+    priority: must
+    status: proposed
+    supported_by:
+      - F-029
+      - F-030
+      - F-034
+      - F-035
+      - F-036
+      - F-038
+    rationale: "Compliance review is not uniformly fuzzy or exact; different label fields require different matching semantics."
+    candidate_features:
+      - "Normalized brand-name comparison"
+      - "Strict government warning comparison"
+      - "Rule-specific result explanations"
+
+  - id: REQ-006
+    title: "Separate matches, mismatches, and cases needing review"
+    statement: "The prototype must distinguish clear matches, clear mismatches, and cases that need human review, with concise explanations for each result."
+    priority: must
+    status: proposed
+    supported_by:
+      - F-029
+      - F-030
+      - F-034
+      - F-037
+      - F-039
+      - F-040
+    rationale: "Some differences are acceptable, some are compliance failures, and some inputs may not support a reliable automated decision."
+    candidate_features:
+      - "Pass/fail/needs-review status model"
+      - "Per-field confidence or explanation"
+      - "Unreadable image handling"
+
+  - id: REQ-007
+    title: "Operate as a standalone proof of concept"
+    statement: "The prototype must operate without direct COLA integration and without persistent storage of sensitive submitted data."
+    priority: must
+    status: proposed
+    supported_by:
+      - F-021
+      - F-022
+      - F-023
+      - F-024
+    rationale: "The take-home prototype is intended to demonstrate feasibility without entering the authorization and retention concerns of production integration."
+    out_of_scope_facts:
+      - F-017
+      - F-018
+      - F-019
+      - F-020
+    candidate_features:
+      - "Standalone local application"
+      - "No direct COLA API dependency"
+      - "No long-term sensitive document retention"
+
+  - id: REQ-008
+    title: "Support batch-oriented ingestion"
+    statement: "The prototype must support file-based batch ingestion, allowing multiple label applications to be added to a queue and processed without requiring agents to handle each one synchronously."
+    priority: should
+    status: proposed
+    supported_by:
+      - F-014
+      - F-015
+      - F-016
+      - F-025
+      - F-026
+    rationale: "Batch intake addresses peak-season submissions and can avoid fragile user-facing dependencies on blocked external services."
+    candidate_features:
+      - "Watched incoming directory"
+      - "Queued processing statuses"
+      - "Processed and failed item lists"
+
+  - id: REQ-009
+    title: "Handle imperfect label images gracefully"
+    statement: "The prototype should detect when image quality prevents reliable verification and report that limitation clearly."
+    priority: should
+    status: proposed
+    supported_by:
+      - F-039
+      - F-040
+      - F-041
+    rationale: "Real submitted labels may be hard to read because of angle, lighting, or glare; the prototype should fail clearly instead of producing misleading results."
+    candidate_features:
+      - "Image quality warning"
+      - "Needs-review status for unreadable labels"
+      - "Clear failure reason"
+
+  - id: REQ-010
+    title: "Persist processing and review state"
+    statement: "The prototype must persist ingestion status, extracted fields, verification results, and review outcomes so agents can review already-processed work and see pending or failed items."
+    priority: must
+    status: proposed
+    supported_by:
+      - F-009
+      - F-014
+      - F-015
+      - F-016
+      - F-022
+      - F-031
+    rationale: "Asynchronous and batch-oriented processing requires durable queue state and review results, regardless of the eventual database choice."
+    candidate_features:
+      - "Job status records"
+      - "Stored verification results"
+      - "Review outcome tracking"
