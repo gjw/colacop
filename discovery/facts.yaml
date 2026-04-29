@@ -840,3 +840,50 @@ facts:
       - cloud_api
       - resilience
       - architecture
+
+  - id: F-044
+    statement: "The committed interpretation of the assignment is that the prototype accepts a label image alongside corresponding application data and produces per-field comparison results. The assignment's Technical Requirements / Sample Label / Deliverables sections do not explicitly state this input frame; the framing is established by the discovery interview content (notably F-004 and F-030)."
+    claim_kind: inferred
+    fact_type: scope_decision
+    source:
+      id: S-001
+      file: assignment.md
+      source_context: "Cross-cutting reading of the assignment text and interview material, settled 2026-04-29"
+      excerpt: "Assignment header is silent on input frame; F-004 (Sarah Chen: 'checks that what's on the label matches what's in the application') and F-030 (Dave Morrison: STONE'S THROW vs Stone's Throw) make the comparison workflow unambiguous."
+    authority:
+      scope: project
+      level: high
+      rationale: "Documents a load-bearing interpretation of the assignment so future readers do not silently re-derive a different scope."
+    related_facts:
+      - F-004
+      - F-030
+      - F-005
+      - F-007
+    tags:
+      - scope_decision
+      - assignment_interpretation
+      - input_frame
+      - comparison_workflow
+
+  - id: F-045
+    statement: "The verification model has two distinct layers. Layer 1 (well-formedness) checks the label against TTB regulatory requirements that hold regardless of any application data: government warning exact text, mandatory-field presence, alcohol-content format, and similar. Layer 2 (comparison) checks extracted label fields against application data. When application data is null or absent, Layer 1 still runs in full; Layer 2 reports comparison failures or a needs_application_data status. Layer 1 and Layer 2 failures are reported separately so a reviewer can see whether a label is intrinsically non-compliant or merely inconsistent with its application."
+    claim_kind: inferred
+    fact_type: scope_decision
+    source:
+      id: S-001
+      file: assignment.md
+      source_context: "Synthesis of regulatory facts, interview content, and the F-044 interpretation, settled 2026-04-29"
+      excerpt: "Jenny Park (F-029, F-034 et al.) emphasizes that warning-text rules are exact and external to any application; Sarah Chen (F-004) and Dave Morrison (F-030) describe the comparison workflow. The two layers compose: a label can be well-formed and yet inconsistent with its application, or be consistent with its application yet violate a regulation."
+    authority:
+      scope: project
+      level: high
+      rationale: "Records the design commitment that well-formedness is a separate layer from comparison; without this fact, REQ-011 has no provenance."
+    related_facts:
+      - F-029
+      - F-034
+      - F-044
+    tags:
+      - scope_decision
+      - verification_layers
+      - well_formedness
+      - comparison_workflow

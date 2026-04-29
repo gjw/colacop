@@ -13,6 +13,7 @@ requirements:
       - F-004
       - F-006
       - F-013
+      - F-044
     rationale: "The review operation is high-volume, handled by a limited team, and currently depends on manual comparison against label artwork."
     candidate_features:
       - "Review queue"
@@ -60,7 +61,7 @@ requirements:
 
   - id: REQ-004
     title: "Verify core label fields against application data"
-    statement: "The prototype must compare extracted label information against provided application fields for at least brand name, alcohol content, and government warning."
+    statement: "The prototype must compare extracted label information against provided application fields for at least brand name, alcohol content, and government warning. This requirement covers Layer 2 (comparison) of the verification model defined in F-045; Layer 1 well-formedness checks are covered by REQ-011."
     priority: must
     status: proposed
     supported_by:
@@ -69,6 +70,8 @@ requirements:
       - F-007
       - F-008
       - F-033
+      - F-044
+      - F-045
     rationale: "The main automation opportunity is reducing routine matching between application data and information visible on the label."
     candidate_features:
       - "Label field extraction"
@@ -181,3 +184,24 @@ requirements:
       - "Job status records"
       - "Stored verification results"
       - "Review outcome tracking"
+
+  - id: REQ-011
+    title: "Run label well-formedness checks independently of application data"
+    statement: "The prototype must apply TTB regulatory well-formedness checks (government warning exact text, mandatory-field presence, alcohol-content format, and similar) on every label, whether or not application data is supplied. Comparison failures (Layer 2, label-vs-application) and well-formedness failures (Layer 1, label-vs-regulation) must be reported separately so a reviewer can distinguish a label that is intrinsically non-compliant from one that is merely inconsistent with its application."
+    priority: must
+    status: proposed
+    supported_by:
+      - F-029
+      - F-034
+      - F-044
+      - F-045
+    rationale: "The verification model is two-layer (F-045). Without an explicit requirement that Layer 1 runs unconditionally, an implementation could short-circuit when application data is missing and silently miss regulatory violations. This requirement also forms the basis for partial-input behavior: when application data is null, Layer 2 fails or reports needs_application_data, but Layer 1 still produces a meaningful result."
+    acceptance_notes:
+      - "Submitting a label with no application data still produces a complete Layer 1 well-formedness report."
+      - "Layer 1 and Layer 2 results are visually distinguishable in the review UI and stored as separate result categories."
+      - "Layer 1 supported_by references should be expanded to cite TTB-regulation-backed facts after the cc-5ea regulatory mini-pass closes."
+    candidate_features:
+      - "Separate well-formedness and comparison result categories"
+      - "Government warning exact-text rule check"
+      - "Required-fields-present rule check"
+      - "ABV format rule check"
