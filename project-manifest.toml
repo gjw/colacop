@@ -1,0 +1,28 @@
+# Project Manifest
+#
+# Declares which modules a project uses. The assembly script reads this
+# to compose role prompts from core + stack + workflow + context.
+
+[project]
+name = "colacop"
+description = "TTB AI alcohol-label verification take-home prototype"
+prefix = "cc"
+glance_hue = 18
+
+# Which roles are active
+[roles]
+tower = true
+trench = true
+herald = false
+warden = false
+
+[build]
+stack = "typescript"
+workflow = "beads"
+
+[beads]
+command = "br"
+sync_command = "br sync --flush-only"
+
+[integrations]
+cass_memory = false

@@ -796,3 +796,47 @@ facts:
       - image_quality
       - feature_request
       - prototype_scope
+
+  - id: F-042
+    statement: "Anthropic has been publicly designated by U.S. defense leadership as a supply chain risk, creating procurement and dependency risk for government-facing systems that rely on Anthropic services."
+    claim_kind: external_report
+    fact_type: supplier_risk
+    source:
+      id: S-005
+      file: discovery/sources/S-005-anthropic-provider-supply-chain-risk.md
+      source_context: "External source notes reviewed April 28, 2026"
+      excerpt: "Defense News / Associated Press reported on February 27, 2026 that the Trump administration ordered U.S. agencies to stop using Anthropic technology, and that Defense Secretary Pete Hegseth said he was designating Anthropic as a supply chain risk."
+    authority:
+      scope: procurement
+      level: high
+      rationale: "Public reporting describes U.S. defense and federal procurement action affecting Anthropic use."
+    tags:
+      - anthropic
+      - supply_chain_risk
+      - procurement
+      - government
+      - model_provider
+
+  - id: F-043
+    statement: "A prototype that depends on a single external model provider is exposed to operational and procurement risks if that provider becomes unavailable, blocked, degraded, or disallowed."
+    claim_kind: inferred
+    fact_type: technical_risk
+    source:
+      id: S-005
+      file: discovery/sources/S-005-anthropic-provider-supply-chain-risk.md
+      source_context: "External source notes reviewed April 28, 2026"
+      excerpt: "Anthropic's public Claude status page shows that Claude services can experience degraded performance, elevated errors, and outages across specific products or model families."
+    authority:
+      scope: architecture
+      level: medium
+      rationale: "This combines external provider-risk evidence with existing infrastructure facts about blocked cloud endpoints."
+    related_facts:
+      - F-025
+      - F-026
+      - F-042
+    tags:
+      - model_provider
+      - supplier_risk
+      - cloud_api
+      - resilience
+      - architecture
