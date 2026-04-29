@@ -146,7 +146,7 @@ Keep raw uploaded files on disk for the prototype unless requirements change. St
 
 ## Model Provider Boundary
 
-The model/OCR layer should sit behind a small interface. The application should not be hard-coded throughout to a single provider.
+The model/OCR layer sits behind a small interface. The application is not hard-coded throughout to a single provider.
 
 This is motivated by:
 
@@ -155,14 +155,59 @@ This is motivated by:
 - Anthropic-specific supply-chain/procurement risk
 - general risk from depending on a single external model provider
 
-The first implementation can have one provider, but the boundary should make replacement plausible:
+### First implementation: Google Gemini 3.1 Pro
+
+The first concrete provider is **Google Gemini 3.1 Pro Preview** (released 2026-02-19), accessed via the Gemini API directly. Reasons:
+
+- Best-in-class multimodal benchmarks for 2026 (MMMU-Pro 83.9; ~17% lead over GPT-5.5 on multimodal tasks).
+- Trained natively end-to-end multimodal; vision is not a bolted-on module.
+- 2.5x cheaper than GPT-5.5 on tokens ($2/$12 per 1M vs $5/$30), which matters for fixture iteration during a 3-day build.
+- Production swap path is clean: same model is available via Vertex AI (FedRAMP High) for a hypothetical TTB production deployment.
+
+Excluded providers and rationale:
+
+- **Anthropic** — excluded by Chair on procurement grounds. F-042 records public reporting that the Trump administration ordered U.S. agencies to stop using Anthropic technology and that the Defense Secretary designated Anthropic as a supply chain risk; using Anthropic in a TTB-facing prototype would signal not having read the source material.
+- **xAI Grok** — vision model is still labeled `grok-vision-beta` in 2026; xAI's investment is concentrated in image generation, not understanding. Not production-ready for reviewer-facing work.
+- **OpenAI GPT-5.5** — viable fallback if Gemini setup friction blocks progress, but currently behind on multimodal benchmarks and 2.5x more expensive.
+
+### Two-layer verification model
+
+Verification is two-layer, per F-045 / REQ-011:
 
 ```text
-analyzeLabel(input) -> extracted fields + evidence/confidence
-verifyLabel(application data, extracted fields) -> per-field results
+Layer 1 (well-formedness): label vs TTB regulation
+  - government warning exact text
+  - mandatory-field presence
+  - alcohol-content format
+  - runs unconditionally, regardless of application data
+
+Layer 2 (comparison): label vs application
+  - per-field match / mismatch / needs_review
+  - runs when application data is supplied; otherwise reports needs_application_data
 ```
 
-Do not let provider response shapes leak into the database or UI as the primary domain model. Normalize provider output into app-owned result types.
+Layer 1 and Layer 2 failures are reported separately in the UI and stored as separate result categories.
+
+### Provider interface (binding)
+
+`analyzeLabel` is on the provider; `verifyLabel` is **not** — it is domain logic that lives in `core/verification.ts` and operates on the provider's output:
+
+```ts
+// src/core/providers/types.ts
+interface LabelProvider {
+  analyzeLabel(image: Buffer): Promise<ExtractedFields>;
+}
+
+// src/core/verification.ts
+function verifyLabel(args: {
+  extracted: ExtractedFields;
+  application: ApplicationData | null;
+}): VerificationResult;  // includes both Layer 1 and Layer 2 results
+```
+
+This split keeps the provider interface narrow and makes the swap test simple: a different provider need only produce `ExtractedFields`. Layer 2 comparison is hybrid: deterministic for fields where TTB regulation requires exactness (warning text, ABV format, net contents normalization) and LLM-assisted for fields where compliance practice tolerates drift (brand name, class/type designation). LLM-assisted comparison reuses the same Gemini provider — no second vendor.
+
+Do not let provider response shapes leak into the database or UI as the primary domain model. Normalize provider output into app-owned result types (`ExtractedFields`, `VerificationResult`).
 
 ## Deployment Shape
 
