@@ -12,7 +12,7 @@ The prototype should be built with:
 - Express for the HTTP API
 - Zod for runtime validation at application boundaries
 - Postgres running through Docker Compose
-- Knex for SQL migrations, query construction, and database access
+- Kysely for type-safe SQL query construction and database access, plus its migration API
 - Chokidar for filesystem watching
 - PM2 for long-running production processes on the VPS
 - nginx as the public reverse proxy
@@ -33,7 +33,9 @@ Zod gives us explicit runtime validation for API payloads, worker inputs, model-
 
 Postgres in Docker is acceptable even though SQLite would also be enough. Postgres is familiar to the implementer, production-shaped, and useful for persisted queue state, JSON result payloads, and review records. Docker Compose keeps local setup reasonable for graders.
 
-Knex is a pragmatic middle ground between raw `pg` and an ORM. It gives us migrations and explicit database access without adopting a heavy object model. SQL should still remain visible and understandable; avoid hiding the data model behind deep abstractions.
+Kysely was chosen over Knex for the SQL access layer. Reasoning: under our `strict` + `noUncheckedIndexedAccess` + no-cast TypeScript rules, Knex's untyped query builder forces hand-written row interfaces and casts at every boundary. Kysely is schema-first — a single `Database` interface drives end-to-end type inference for queries, joins, and inserts, and column typos surface as compile errors. It also gives us a migration API; a small `kysely-ctl`- or script-based runner replaces Knex's CLI, which is a small cost at this scale (we expect ~4-6 migrations). SQL should still remain visible and understandable; avoid hiding the data model behind deep abstractions.
+
+The shared `Database` interface in `src/db/schema.ts` is the source of truth for row shapes; `core/schemas.ts` Zod schemas validate at external boundaries (HTTP, filesystem, model-provider responses) and may differ from row shapes when needed.
 
 ## Process Shape
 
@@ -100,7 +102,8 @@ src/
     verification.ts
     providers/
   db/
-    knex.ts
+    kysely.ts
+    schema.ts
     jobs.ts
     reviews.ts
     migrations/
@@ -207,7 +210,7 @@ PM2/nginx is fine for the VPS, but it is not the same as the local development p
 
 Filesystem watching can behave differently across operating systems and Docker-mounted volumes. Browser upload must feed the same queue path so graders can test ingestion even if directory watching is inconvenient in their environment.
 
-Knex can become opaque if query-builder chains replace clear SQL thinking. Keep migrations explicit and keep database access functions small.
+Kysely query chains can grow long; keep database access functions small and named, and write migrations as plain SQL where it's clearer than the builder.
 
 LLM/OCR calls may violate the intended 5-second agent-perceived latency if they run synchronously. Preserve the asynchronous queue model, and show queued/processing status clearly.
 
