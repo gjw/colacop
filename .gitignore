@@ -3,3 +3,20 @@
 
 # Claude Code local telemetry
 .claude/tracking/
+
+# Node / build
+node_modules/
+dist/
+
+# Env
+.env
+
+# Runtime data (keep dirs via .gitkeep)
+data/incoming/*
+data/processing/*
+data/processed/*
+data/failed/*
+!data/incoming/.gitkeep
+!data/processing/.gitkeep
+!data/processed/.gitkeep
+!data/failed/.gitkeep

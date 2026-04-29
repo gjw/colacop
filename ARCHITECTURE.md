@@ -17,9 +17,9 @@ The prototype should be built with:
 - PM2 for long-running production processes on the VPS
 - nginx as the public reverse proxy
 
-Node 24.x is an appropriate target because it is the current Active LTS line. Use `24` or `24.x` in local/tooling documentation rather than pinning application code to a specific patch release unless the build process needs exact reproducibility.
+Node 24.x is an appropriate target because it is the current Active LTS line. Reference `24.x` in prose, but `.node-version` must contain a full `MAJOR.MINOR.PATCH` value because nodenv does not do prefix matching — `24` or `24.x` will fail with `version not installed`.
 
-Use `nodenv` to lock the local Node version for the repo, likely through a committed `.node-version` file. Workflow should be tracked with `br` (`beads_rust`) and viewed with `bv`; note that `br sync --flush-only` exports bead state but does not run git commands, so `.beads/` changes must be committed explicitly when bead state is part of a commit.
+Use `nodenv` to lock the local Node version for the repo through a committed `.node-version` file pinned to a specific patch (e.g. `24.14.0`). Workflow should be tracked with `br` (`beads_rust`) and viewed with `bv`; note that `br sync --flush-only` exports bead state but does not run git commands, so `.beads/` changes must be committed explicitly when bead state is part of a commit.
 
 ## Why This Stack
 
