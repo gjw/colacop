@@ -310,6 +310,40 @@ npm run dev
 
 The exact scripts can change, but the goal is that a reviewer can either use the live deployment or run the app locally without reverse-engineering the environment.
 
+### Live deployment target
+
+The live URL is hosted on an existing Linode VPS owned by Chair, on the `foramerica.dev` domain (wildcard Let's Encrypt certificate already in place; no per-subdomain TLS work needed).
+
+```text
+host:    linode43393  (Linode 16 GB, US Dallas TX, 45.33.122.158)
+url:     https://colacop.foramerica.dev
+nginx:   already installed; reverse-proxies the Node API on a private port
+pm2:     already installed; manages web/API and worker processes as
+         separate apps under one ecosystem.config.cjs
+postgres: docker compose up -d db (no native install on the box)
+node:    nodenv-managed per the repo's .node-version
+```
+
+### Deploy mechanism
+
+Manual SSH + git pull + build + reload. Chosen over CI/CD for speed-of-iteration during a 3-day build:
+
+```sh
+ssh root@linode43393.foramerica.dev
+cd /opt/colacop
+git pull
+npm ci
+npm run migrate
+npm run build
+pm2 reload ecosystem.config.cjs
+```
+
+The README captures these steps reviewer-side as "how the live deployment is updated"; the reviewer themselves only needs the URL.
+
+### Coordination on the box
+
+Linode 16 GB has plenty of headroom for Postgres-in-Docker alongside whatever else is running. Any pre-existing Postgres databases on the box that conflict with port 5432 may be shut down per Chair; the prototype's docker-compose binds to a non-default port if needed to coexist.
+
 ## Potential Problems
 
 Postgres in Docker is heavier than SQLite. This is acceptable because the implementer is more familiar with Postgres, but the README must make local startup clear.
