@@ -910,3 +910,181 @@ facts:
       - input_frame
       - file_pairing
       - ingestion
+
+  - id: F-047
+    statement: "The Surgeon General's health warning required by 27 CFR 16.21 has a fixed regulation-defined wording: \"GOVERNMENT WARNING: (1) According to the Surgeon General, women should not drink alcoholic beverages during pregnancy because of the risk of birth defects. (2) Consumption of alcoholic beverages impairs your ability to drive a car or operate machinery, and may cause health problems.\""
+    claim_kind: regulation_text
+    fact_type: regulatory_rule
+    source:
+      id: S-006
+      file: discovery/sources/S-006-ttb-government-warning.md
+      source_context: "27 CFR 16.21, Cornell LII mirror of the eCFR, reviewed 2026-04-29"
+      excerpt: "GOVERNMENT WARNING: (1) According to the Surgeon General, women should not drink alcoholic beverages during pregnancy because of the risk of birth defects. (2) Consumption of alcoholic beverages impairs your ability to drive a car or operate machinery, and may cause health problems."
+    authority:
+      scope: regulation
+      level: high
+      rationale: "Direct quote of the operative federal regulation; supersedes the interview-derived F-035."
+    related_facts:
+      - F-035
+    tags:
+      - government_warning
+      - regulatory_rule
+      - exact_matching
+      - layer1_wellformedness
+
+  - id: F-048
+    statement: "27 CFR 16.22 requires that the words \"GOVERNMENT WARNING\" appear in capital letters and bold type on the container label."
+    claim_kind: regulation_text
+    fact_type: regulatory_rule
+    source:
+      id: S-006
+      file: discovery/sources/S-006-ttb-government-warning.md
+      source_context: "27 CFR 16.22, Cornell LII mirror of the eCFR, reviewed 2026-04-29"
+      excerpt: "GOVERNMENT WARNING, the opening words, must appear in capital letters and bold type."
+    authority:
+      scope: regulation
+      level: high
+      rationale: "Direct quote of the operative federal regulation; supersedes the interview-derived F-036 and F-038."
+    related_facts:
+      - F-036
+      - F-038
+    tags:
+      - government_warning
+      - typography
+      - capitalization
+      - regulatory_rule
+
+  - id: F-049
+    statement: "27 CFR 16.22 sets minimum type-size requirements for the warning statement based on container size: not smaller than 1 mm for containers of 237 mL or less; not smaller than 2 mm for containers between 237 mL and 3 L; not smaller than 3 mm for containers larger than 3 L. Maximum character density is 40 cpi at 1 mm, 25 cpi at 2 mm, and 12 cpi at 3 mm."
+    claim_kind: regulation_text
+    fact_type: regulatory_rule
+    source:
+      id: S-006
+      file: discovery/sources/S-006-ttb-government-warning.md
+      source_context: "27 CFR 16.22, Cornell LII mirror of the eCFR, reviewed 2026-04-29"
+      excerpt: "Containers 237 milliliters (8 fl. oz.) or less... not smaller than 1 millimeter. Containers more than 237 milliliters up to 3 liters... not smaller than 2 millimeters. Containers more than 3 liters... not smaller than 3 millimeters."
+    authority:
+      scope: regulation
+      level: high
+    tags:
+      - government_warning
+      - type_size
+      - regulatory_rule
+      - out_of_prototype_scope
+
+  - id: F-050
+    statement: "27 CFR 16.21 requires the warning to appear \"on the brand label or separate front label, or on a back or side label, separate and apart from all other information.\""
+    claim_kind: regulation_text
+    fact_type: regulatory_rule
+    source:
+      id: S-006
+      file: discovery/sources/S-006-ttb-government-warning.md
+      source_context: "27 CFR 16.21, Cornell LII mirror of the eCFR, reviewed 2026-04-29"
+      excerpt: "on the brand label or separate front label, or on a back or side label, separate and apart from all other information."
+    authority:
+      scope: regulation
+      level: high
+    tags:
+      - government_warning
+      - placement
+      - regulatory_rule
+
+  - id: F-051
+    statement: "27 CFR 4.32 requires every wine container label to show: brand name (§ 4.33), class/type/designation (§ 4.34), name and address of bottler/producer/importer (§ 4.35), alcohol content (§ 4.36), and net contents (§ 4.37)."
+    claim_kind: regulation_text
+    fact_type: regulatory_rule
+    source:
+      id: S-007
+      file: discovery/sources/S-007-ttb-mandatory-label-fields.md
+      source_context: "27 CFR 4.32, Cornell LII mirror of the eCFR, reviewed 2026-04-29"
+      excerpt: "Brand name... Class, type, or other designation... Name and address... Alcohol content... Net contents..."
+    authority:
+      scope: regulation
+      level: high
+      rationale: "Direct quote of the operative federal regulation for wine labels; grounds REQ-004 mandatory-field comparison and REQ-011 well-formedness for the wine commodity class."
+    tags:
+      - mandatory_fields
+      - wine
+      - regulatory_rule
+      - layer1_wellformedness
+
+  - id: F-052
+    statement: "27 CFR 4.36 specifies allowable display formats for wine alcohol content: \"Alcohol __% by volume\" or a range \"Alcohol __% to __% by volume\". Words may be abbreviated as \"alc.\" and \"vol.\". Single-value tolerances are ±1.0% above 14% ABV and ±1.5% at or below 14% ABV. Range statements may span at most 2% above 14% and 3% at or below 14%."
+    claim_kind: regulation_text
+    fact_type: regulatory_rule
+    source:
+      id: S-007
+      file: discovery/sources/S-007-ttb-mandatory-label-fields.md
+      source_context: "27 CFR 4.36, Cornell LII mirror of the eCFR, reviewed 2026-04-29"
+      excerpt: "Alcohol __% by volume, or similar appropriate phrase... ±1% for wines above 14% ABV; ±1.5% for wines at or below 14% ABV."
+    authority:
+      scope: regulation
+      level: high
+      rationale: "Grounds REQ-005's claim that alcohol-content matching is field-specific: the regulation defines both format variants and numeric tolerances."
+    tags:
+      - alcohol_content
+      - wine
+      - matching_rule
+      - regulatory_rule
+      - tolerance
+
+  - id: F-053
+    statement: "27 CFR 5.63 requires every distilled spirits container label to show: brand name, class/type/designation, and alcohol content all in the same field of vision (per § 5.64, subpart I, and § 5.65 respectively); plus name and address of the bottler/distiller/importer; plus net contents."
+    claim_kind: regulation_text
+    fact_type: regulatory_rule
+    source:
+      id: S-007
+      file: discovery/sources/S-007-ttb-mandatory-label-fields.md
+      source_context: "27 CFR 5.63, Cornell LII mirror of the eCFR, reviewed 2026-04-29"
+      excerpt: "Brand name, in accordance with § 5.64. Class, type, or other designation, in accordance with subpart I. Alcohol content, in accordance with § 5.65... Name and address of the bottler or distiller... Net contents..."
+    authority:
+      scope: regulation
+      level: high
+      rationale: "Grounds REQ-004 and REQ-011 for the distilled spirits commodity class."
+    tags:
+      - mandatory_fields
+      - distilled_spirits
+      - regulatory_rule
+      - layer1_wellformedness
+
+  - id: F-054
+    statement: "27 CFR 7.63 requires every malt beverage container label to show: brand name (§ 7.64), class/type/designation (subpart I), name and address of the bottler or importer (§§ 7.66–7.68), and net contents (§ 7.70). Alcohol content is required only when the malt beverage contains alcohol derived from added nonbeverage flavors or other added nonbeverage ingredients."
+    claim_kind: regulation_text
+    fact_type: regulatory_rule
+    source:
+      id: S-007
+      file: discovery/sources/S-007-ttb-mandatory-label-fields.md
+      source_context: "27 CFR 7.63, Cornell LII mirror of the eCFR, reviewed 2026-04-29"
+      excerpt: "Brand name... Class, type, or other designation... Alcohol content [conditional]... Name and address of the bottler or importer... Net contents..."
+    authority:
+      scope: regulation
+      level: high
+      rationale: "Grounds REQ-004 and REQ-011 for the malt beverage commodity class. Note the conditional rule for alcohol content."
+    tags:
+      - mandatory_fields
+      - malt_beverages
+      - regulatory_rule
+      - layer1_wellformedness
+
+  - id: F-055
+    statement: "Class/type designation has a controlled vocabulary that varies by commodity (27 CFR Part 4 Subpart D for wine, Part 5 Subpart I for distilled spirits, Part 7 Subpart I for malt beverages). The prototype will not model these vocabularies; class/type matching against application data will rely on the model's understanding rather than a regulation-derived enumeration."
+    claim_kind: inferred
+    fact_type: scope_decision
+    source:
+      id: S-007
+      file: discovery/sources/S-007-ttb-mandatory-label-fields.md
+      source_context: "Scope decision recorded during regulatory mini-pass, 2026-04-29"
+      excerpt: "Modeling that vocabulary is out of scope for this prototype; record it as a future-production consideration."
+    authority:
+      scope: project
+      level: high
+      rationale: "Records a deliberate constraint on the prototype's regulatory grounding so future readers do not assume class/type checks are vocabulary-validated."
+    related_facts:
+      - F-051
+      - F-053
+      - F-054
+    tags:
+      - scope_decision
+      - class_type
+      - controlled_vocabulary
+      - out_of_prototype_scope

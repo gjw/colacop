@@ -72,7 +72,11 @@ requirements:
       - F-033
       - F-044
       - F-045
-    rationale: "The main automation opportunity is reducing routine matching between application data and information visible on the label."
+      - F-051
+      - F-052
+      - F-053
+      - F-054
+    rationale: "The main automation opportunity is reducing routine matching between application data and information visible on the label. The TTB mandatory-field rules (F-051/F-053/F-054) define the comparable surface; the alcohol-content format rule (F-052) defines what a regulation-conformant alcohol-content string looks like for wine."
     candidate_features:
       - "Label field extraction"
       - "Application field input or fixture data"
@@ -80,7 +84,7 @@ requirements:
 
   - id: REQ-005
     title: "Apply field-specific matching rules"
-    statement: "The prototype must apply field-specific comparison behavior: tolerant matching for brand-name variations where appropriate, and strict matching for government warning text and capitalization."
+    statement: "The prototype must apply field-specific comparison behavior: tolerant matching for brand-name variations where appropriate, strict matching for government warning text and capitalization, and tolerance-aware matching for alcohol content."
     priority: must
     status: proposed
     supported_by:
@@ -90,7 +94,10 @@ requirements:
       - F-035
       - F-036
       - F-038
-    rationale: "Compliance review is not uniformly fuzzy or exact; different label fields require different matching semantics."
+      - F-047
+      - F-048
+      - F-052
+    rationale: "Compliance review is not uniformly fuzzy or exact; different label fields require different matching semantics. The warning's exact wording (F-047) and the GOVERNMENT WARNING capitalization+bold rule (F-048) ground the strict-matching policy. The wine alcohol-content tolerances (F-052) ground the field-specific tolerance policy: alcohol content is a numeric comparison with regulation-defined slack, not a string-equality check."
     candidate_features:
       - "Normalized brand-name comparison"
       - "Strict government warning comparison"
@@ -195,12 +202,21 @@ requirements:
       - F-034
       - F-044
       - F-045
-    rationale: "The verification model is two-layer (F-045). Without an explicit requirement that Layer 1 runs unconditionally, an implementation could short-circuit when application data is missing and silently miss regulatory violations. This requirement also forms the basis for partial-input behavior: when application data is null, Layer 2 fails or reports needs_application_data, but Layer 1 still produces a meaningful result."
+      - F-047
+      - F-048
+      - F-050
+      - F-051
+      - F-052
+      - F-053
+      - F-054
+    out_of_scope_facts:
+      - F-049
+      - F-055
+    rationale: "The verification model is two-layer (F-045). Without an explicit requirement that Layer 1 runs unconditionally, an implementation could short-circuit when application data is missing and silently miss regulatory violations. This requirement also forms the basis for partial-input behavior: when application data is null, Layer 2 fails or reports needs_application_data, but Layer 1 still produces a meaningful result. Layer 1 is now grounded in TTB regulatory text (F-047, F-048, F-050 for the warning; F-051/F-053/F-054 for mandatory fields by commodity; F-052 for the wine alcohol-content format). Type-size requirements (F-049) and class/type controlled vocabulary (F-055) are deliberately out of scope for this prototype."
     acceptance_notes:
       - "Submitting a label with no application data still produces a complete Layer 1 well-formedness report."
       - "Layer 1 and Layer 2 results are visually distinguishable in the review UI and stored as separate result categories."
       - "Per-field application gaps (e.g., JSON present but missing countryOfOrigin) are reported as needs_application_data for that field specifically, not the whole label."
-      - "Layer 1 supported_by references should be expanded to cite TTB-regulation-backed facts after the cc-5ea regulatory mini-pass closes."
     candidate_features:
       - "Separate well-formedness and comparison result categories"
       - "Government warning exact-text rule check"
