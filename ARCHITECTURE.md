@@ -53,6 +53,69 @@ browser upload or watched directory
 
 The UI should be queue-first rather than upload-first. Agents should primarily see submitted work, processing status, verification results, and items that need review. Uploading through the browser should be supported, but it should feed the same ingestion path as files dropped into the watched directory.
 
+## Input Pairing
+
+A "label" submission is a pair of files sharing a filename stem:
+
+- An image file (`.jpg`, `.jpeg`, `.png`, `.webp`) — the label artwork.
+- A JSON file (`.json`) — the application data describing what the producer claims is on the label.
+
+Pairing is by stem: `42.jpg` pairs with `42.json`. Stems may be any consistent identifier (numeric, UUID, ULID, COLA-style alphanumeric); the app does not enforce a format. Fixtures dictate.
+
+### Application data schema
+
+The JSON file contains the matchable fields a TTB agent would compare against the label. The government warning is **not** in the application data — it is regulation-defined and lives in Layer 1 only.
+
+```ts
+type ApplicationData = {
+  brandName: string;
+  classType: string;          // e.g. "Kentucky Straight Bourbon Whiskey"
+  alcoholContent: string;     // e.g. "45.0%" — format-flexible; comparison normalizes
+  netContents: string;        // e.g. "750 mL"
+  producerName: string;
+  producerAddress: string;
+  countryOfOrigin?: string;   // present only for imports
+};
+```
+
+Per-field application gaps (e.g., JSON present but `countryOfOrigin` missing for what turns out to be an import) are reported as `needs_application_data` for that field specifically, not for the whole label.
+
+### One-to-one mapping
+
+One image pairs with one JSON. A batch is N pairs in the watched directory, **not** one pair containing N labels. This matches the real COLA-system semantics where each unique label has its own filing.
+
+Multi-label-per-application (e.g., size variants of the same product) is out of scope for the prototype. If a real reviewer asks "what about variants?" the answer is: each variant is a separate COLA filing, so the prototype's one-to-one model is the COLA-correct unit.
+
+### Pairing timing
+
+Files in the pair may arrive in either order or simultaneously. The watcher subscribes to both image and JSON file events. On any event, look up the existing job by stem and upsert:
+
+```text
+both arrive together                  -> create job, run Layer 1, run Layer 2
+image first, JSON later               -> create job (application_data = null),
+                                         run Layer 1,
+                                         Layer 2 reports needs_application_data;
+                                         when JSON later arrives, load it and
+                                         re-run Layer 2 only (Layer 1 is stable
+                                         because the image has not changed)
+JSON first, image later               -> create job (application_data set),
+                                         status awaiting_label, nothing runs;
+                                         when image arrives, run Layer 1 then Layer 2
+```
+
+Re-running Layer 2 is safe: Layer 1 results are derived from the image, and the image does not change. The job record carries Layer 1 and Layer 2 results in separate columns / categories so re-runs do not clobber stable results.
+
+Chokidar must be configured with `awaitWriteFinish` so the watcher does not fire on partially-written files.
+
+### Browser upload symmetry
+
+Browser upload accepts a paired submission (label image + application JSON, either as two file inputs or a multipart payload) and produces the same internal representation as a watched-directory drop. Browser submissions degrade gracefully if only the label image is supplied. The browser-upload path *creates the same job records* as the watcher; nothing diverges past the ingestion seam.
+
+### Out of scope
+
+- Bundled inputs (zip archives with manifests, tar streams, etc.) — explicitly not supported.
+- Out-of-band application-data fetch (looking up the application by ID from a COLA database) — explicitly not supported. The application data must arrive as a file. This is a meaningful divergence from a real production deployment, and the README should note it.
+
 ## Runtime Components
 
 Use two long-running Node processes:

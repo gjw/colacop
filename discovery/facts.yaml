@@ -887,3 +887,26 @@ facts:
       - verification_layers
       - well_formedness
       - comparison_workflow
+
+  - id: F-046
+    statement: "The prototype pairs a label image with its corresponding application data using a shared filename stem (e.g., 42.jpg + 42.json). Application data is JSON containing the matchable label fields (brand name, class/type, alcohol content, net contents, producer name and address, optional country of origin); the government warning is not part of application data because it is regulation-defined. The mapping is one-to-one: one image pairs with one application. Files in a pair may arrive in either order or simultaneously; when only one is present, the system processes what it can (Layer 1 if image is present; nothing if only JSON is present) and completes Layer 2 when the missing file later arrives. Bundled inputs (zip with manifest) and out-of-band application lookups are not supported. This is a deliberate simplification; a production deployment would likely use COLA-system filing IDs and a richer ingestion contract."
+    claim_kind: inferred
+    fact_type: scope_decision
+    source:
+      id: S-001
+      file: assignment.md
+      source_context: "Design decision settled with Chair on 2026-04-29; informed by COLA real-world filing semantics (one label per filing) and assignment text constraints (no manifest, no zip, no out-of-band fetch implied)."
+      excerpt: "The assignment does not prescribe a specific input format; the simplest plausible analog of a real workflow is paired files with stem-matched names, which is what we adopted."
+    authority:
+      scope: project
+      level: high
+      rationale: "Documents the input frame so future readers do not silently re-derive a different ingestion contract (e.g., zip+manifest, multipart-only, DB lookup)."
+    related_facts:
+      - F-044
+      - F-014
+      - F-022
+    tags:
+      - scope_decision
+      - input_frame
+      - file_pairing
+      - ingestion

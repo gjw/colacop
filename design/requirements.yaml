@@ -199,9 +199,33 @@ requirements:
     acceptance_notes:
       - "Submitting a label with no application data still produces a complete Layer 1 well-formedness report."
       - "Layer 1 and Layer 2 results are visually distinguishable in the review UI and stored as separate result categories."
+      - "Per-field application gaps (e.g., JSON present but missing countryOfOrigin) are reported as needs_application_data for that field specifically, not the whole label."
       - "Layer 1 supported_by references should be expanded to cite TTB-regulation-backed facts after the cc-5ea regulatory mini-pass closes."
     candidate_features:
       - "Separate well-formedness and comparison result categories"
       - "Government warning exact-text rule check"
       - "Required-fields-present rule check"
       - "ABV format rule check"
+
+  - id: REQ-012
+    title: "Accept paired label image and application data by filename stem"
+    statement: "The prototype must accept submissions as a pair of files sharing a filename stem: an image file (.jpg, .jpeg, .png, .webp) and a JSON file (.json). Files in a pair may arrive in either order or simultaneously; the system must pair them by stem and process what it can. When only the image is present, Layer 1 runs and Layer 2 reports needs_application_data; when the JSON later arrives, Layer 2 re-runs without re-running Layer 1. When only the JSON is present, the job is held in awaiting_label state until the image arrives. Browser upload mirrors this contract: a browser submission accepts a paired image+JSON or a label-only image and produces the same internal representation as a watched-directory drop."
+    priority: must
+    status: proposed
+    supported_by:
+      - F-044
+      - F-045
+      - F-046
+    rationale: "The input frame is a non-trivial choice with real alternatives (zip+manifest, multipart-only, DB lookup by COLA ID). Recording it as a requirement rather than an implementation detail makes the tradeoff explicit and prevents future scope drift toward unsupported ingestion modes."
+    acceptance_notes:
+      - "A label image with no JSON sibling produces a job with Layer 1 results and Layer 2 marked needs_application_data."
+      - "A JSON file with no image sibling produces a job in awaiting_label status."
+      - "When the missing sibling later arrives, the existing job is updated rather than a new job created."
+      - "Layer 1 results are stable across Layer 2 re-runs (the image has not changed)."
+      - "The watcher uses chokidar awaitWriteFinish to avoid firing on partially-written files."
+    candidate_features:
+      - "Watched-directory ingestion for both image and JSON files"
+      - "Upsert-by-stem job creation"
+      - "awaiting_label job state for JSON-first arrivals"
+      - "Layer 2 re-run path that does not re-run Layer 1"
+      - "Browser upload accepting paired or label-only submissions"

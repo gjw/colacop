@@ -21,6 +21,7 @@ Updated 2026-04-29 by Tower. Hard external deadline 2026-05-02.
 - **Model provider:** Google Gemini 3.1 Pro Preview, via the Gemini API directly. Closed `cc-7qe`. ARCHITECTURE.md > Model Provider Boundary updated with the choice, exclusions (Anthropic on procurement grounds; xAI on beta-status grounds), production-swap path (Vertex AI Government / Azure / Bedrock), and the tightened interface (analyzeLabel on provider; verifyLabel is domain logic).
 - **Verification model:** two layers, per F-045 / REQ-011. Layer 1 (well-formedness) runs unconditionally; Layer 2 (comparison) runs when application data is supplied. Layer 2 is hybrid — deterministic for fields TTB requires exact (warning text, ABV format, net contents), LLM-assisted via Gemini for fields tolerated drift in (brand name, class/type).
 - **Input frame interpretation:** label image + application data. The assignment header is silent on this; F-044 records the committed interpretation so future readers do not silently re-derive a different scope.
+- **Input pairing model:** filename-stem pairing (`42.jpg` + `42.json`), one-to-one, JSON for application data, files in a pair may arrive in either order with re-pairing on later arrival (image-first: Layer 1 runs immediately, Layer 2 re-runs when JSON arrives; JSON-first: held in `awaiting_label` until image arrives). Recorded in F-046, REQ-012, and ARCHITECTURE.md > Input Pairing.
 
 ## Open dependencies after this session
 
