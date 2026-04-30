@@ -161,18 +161,23 @@ requirements:
 
   - id: REQ-009
     title: "Handle imperfect label images gracefully"
-    statement: "The prototype should detect when image quality prevents reliable verification and report that limitation clearly."
+    statement: "The prototype should detect when image quality prevents reliable verification and report that limitation clearly. Per-field extraction quality is reported separately from the verdict via a low/med/hi extraction_confidence indicator on each Layer 1 field result, so a reviewer can distinguish 'the label says X and X is wrong' from 'we think the label says X but the image was hard to read.'"
     priority: should
     status: proposed
     supported_by:
       - F-039
       - F-040
       - F-041
-    rationale: "Real submitted labels may be hard to read because of angle, lighting, or glare; the prototype should fail clearly instead of producing misleading results."
+      - F-056
+    rationale: "Real submitted labels may be hard to read because of angle, lighting, or glare; the prototype should fail clearly instead of producing misleading results. F-056 records the design choice to surface read-quality at the per-field level rather than as a second verdict axis."
+    acceptance_notes:
+      - "Per-field Layer 1 results expose an extraction_confidence value in {low, med, hi}."
+      - "extraction_confidence is rendered as a UI badge alongside the field, not as a numeric column or as part of the verdict."
+      - "The overall verdict surface remains REQ-006's pass / fail / needs_review trichotomy regardless of confidence buckets."
     candidate_features:
-      - "Image quality warning"
-      - "Needs-review status for unreadable labels"
-      - "Clear failure reason"
+      - "Per-field extraction_confidence enum"
+      - "Low-confidence read indicator badge in review UI"
+      - "Needs-review status for labels where confidence is uniformly low"
 
   - id: REQ-010
     title: "Persist processing and review state"

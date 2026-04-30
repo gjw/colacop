@@ -1088,3 +1088,26 @@ facts:
       - class_type
       - controlled_vocabulary
       - out_of_prototype_scope
+
+  - id: F-056
+    statement: "Per-field extraction confidence and overall verification verdict are kept on separate axes. Layer 1 per-field results carry an extraction_confidence enum with three buckets (low, med, hi) derived from the label-extraction model's per-field signal (e.g., logprobs or self-rated score); this is a model-read-quality indicator, not a verdict. The overall verdict remains REQ-006's pass / fail / needs_review trichotomy. A verdict-level numeric confidence score was considered and rejected: pass / fail / needs_review already encodes how sure the system is about compliance, adding a numeric axis on top would force agents to interpret two signals where one suffices, and a numeric cutoff would tempt automatic-pass behavior that contradicts the human-in-the-loop posture argued for by F-029 and F-037."
+    claim_kind: inferred
+    fact_type: scope_decision
+    source:
+      id: S-001
+      file: assignment.md
+      source_context: "Design decision settled with Chair on 2026-04-29 after a confidence-modeling discussion; supersedes the cc-wvs decision ticket."
+      excerpt: "F-039 (bad angles, glare, lighting) makes low-confidence reads a real category we have to surface; REQ-006's verdict trichotomy already encodes compliance certainty, so a separate verdict-level confidence score is not added."
+    authority:
+      scope: project
+      level: high
+      rationale: "Records both the positive decision (per-field extraction_confidence exists as a low/med/hi enum) and the negative decision (no verdict-level confidence score), so neither is silently re-litigated. The schema impact lands in cc-xog's eventual Layer 1 result shape; the negative decision affects how REQ-006 is interpreted."
+    related_facts:
+      - F-039
+      - F-029
+      - F-037
+    tags:
+      - scope_decision
+      - extraction_confidence
+      - verification_layers
+      - human_in_loop
