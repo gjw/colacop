@@ -91,17 +91,24 @@ Multi-label-per-application (e.g., size variants of the same product) is out of 
 Files in the pair may arrive in either order or simultaneously. The watcher subscribes to both image and JSON file events. On any event, look up the existing job by stem and upsert:
 
 ```text
-both arrive together                  -> create job, run Layer 1, run Layer 2
+both arrive together                  -> create job, lifecycle queued -> processing,
+                                         run Layer 1, run Layer 2, lifecycle processed
 image first, JSON later               -> create job (application_data = null),
-                                         run Layer 1,
-                                         Layer 2 reports needs_application_data;
-                                         when JSON later arrives, load it and
-                                         re-run Layer 2 only (Layer 1 is stable
-                                         because the image has not changed)
+                                         lifecycle queued -> processing,
+                                         run Layer 1, lifecycle awaiting_application
+                                         (Layer 2 not runnable);
+                                         when JSON later arrives, lifecycle
+                                         awaiting_application -> queued -> processing,
+                                         re-run Layer 2 only (Layer 1 stable),
+                                         lifecycle processed
 JSON first, image later               -> create job (application_data set),
-                                         status awaiting_label, nothing runs;
-                                         when image arrives, run Layer 1 then Layer 2
+                                         lifecycle awaiting_label, nothing runs;
+                                         when image arrives, lifecycle
+                                         awaiting_label -> queued -> processing,
+                                         run Layer 1 then Layer 2, lifecycle processed
 ```
+
+Lifecycle and verdict are separate axes. Lifecycle is a single column on `jobs` with values `awaiting_label | awaiting_application | queued | processing | processed | failed`. Verdict is per-field on result rows: Layer 1 fields take `pass | fail | needs_review`; Layer 2 fields take `pass | fail | needs_review | needs_application_data`. The verdict-derived "needs review" UI bucket is a filter over `processed` jobs whose result rows contain any `needs_review`. `failed` is reserved for system-level failures (worker crash, file-read error); a label whose Layer 1 fields all came back `needs_review` is `processed` with bad verdicts, not `failed`.
 
 Re-running Layer 2 is safe: Layer 1 results are derived from the image, and the image does not change. The job record carries Layer 1 and Layer 2 results in separate columns / categories so re-runs do not clobber stable results.
 
@@ -115,6 +122,7 @@ Browser upload accepts a paired submission (label image + application JSON, eith
 
 - Bundled inputs (zip archives with manifests, tar streams, etc.) — explicitly not supported.
 - Out-of-band application-data fetch (looking up the application by ID from a COLA database) — explicitly not supported. The application data must arrive as a file. This is a meaningful divergence from a real production deployment, and the README should note it.
+- Same-stem replacement of an already-ingested file (image or JSON) — undefined behavior (F-057). Once a stem has a job and at least one layer has run, dropping a new file with the same stem will not re-version inputs or re-run affected layers. A production deployment would version inputs and re-run on content change; the prototype does not.
 
 ## Runtime Components
 
@@ -130,7 +138,7 @@ The web/API process should:
 - serve the built React frontend
 - expose API routes for jobs, results, uploads, and review outcomes
 - validate all inputs with Zod
-- write uploads into the ingestion path or directly create equivalent queued jobs
+- write uploads into the ingestion path (data/incoming/) so the watcher picks them up; the upload route never bypasses the watcher to create jobs directly, keeping a single ingestion code path
 - read persisted queue and verification state from Postgres
 
 The worker process should:

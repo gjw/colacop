@@ -237,7 +237,9 @@ requirements:
       - F-044
       - F-045
       - F-046
-    rationale: "The input frame is a non-trivial choice with real alternatives (zip+manifest, multipart-only, DB lookup by COLA ID). Recording it as a requirement rather than an implementation detail makes the tradeoff explicit and prevents future scope drift toward unsupported ingestion modes."
+    out_of_scope_facts:
+      - F-057
+    rationale: "The input frame is a non-trivial choice with real alternatives (zip+manifest, multipart-only, DB lookup by COLA ID). Recording it as a requirement rather than an implementation detail makes the tradeoff explicit and prevents future scope drift toward unsupported ingestion modes. F-057 records that same-stem replacement is undefined behavior — the prototype treats stem as identity, not version."
     acceptance_notes:
       - "A label image with no JSON sibling produces a job with Layer 1 results and Layer 2 marked needs_application_data."
       - "A JSON file with no image sibling produces a job in awaiting_label status."

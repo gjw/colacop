@@ -1111,3 +1111,24 @@ facts:
       - extraction_confidence
       - verification_layers
       - human_in_loop
+
+  - id: F-057
+    statement: "Same-stem replacement of an already-ingested file (image or JSON) is undefined behavior in the prototype. Once a job has been created for a stem and at least one layer has run, dropping a new file with the same stem is not guaranteed to invalidate or re-run prior layer results, and the prototype will not detect content change versus identity. A production deployment would version inputs (e.g., content-hash or COLA filing version) and re-run affected layers on change; the prototype does not. This is acceptable because the take-home use case is one-shot ingestion of a label and its application, not iterative editing."
+    claim_kind: inferred
+    fact_type: scope_decision
+    source:
+      id: S-001
+      file: assignment.md
+      source_context: "Design decision settled with Chair on 2026-04-29 while pinning the cc-xog state model."
+      excerpt: "The prototype's pairing contract (F-046) treats the stem as the identity of a (label, application) pair; content-versioning is out of scope."
+    authority:
+      scope: project
+      level: high
+      rationale: "Records a deliberate boundary on the file-pairing contract so future readers do not assume idempotent replay or content-change detection."
+    related_facts:
+      - F-046
+    tags:
+      - scope_decision
+      - file_pairing
+      - ingestion
+      - out_of_prototype_scope
