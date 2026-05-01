@@ -33,11 +33,10 @@ use_cases:
         interest: "Approved labels carry the regulation-defined health warning and accurate product information."
 
     preconditions:
-      - "A label submission exists in the agent's queue. A submission consists of a label image and, in the standard case, corresponding application data describing what the producer claims is on the label. Either part of the pair may arrive first; the system reconciles them by their shared identifier."
+      - "At least one label submission exists in the agent's queue. Submissions may be in any state: already verified and ready to review, still being processed, flagged for human attention, or waiting for the missing half of a label/application pair. A submission consists of a label image and, in the standard case, corresponding application data describing what the producer claims is on the label. Either part of the pair may arrive first; the system reconciles them by their shared identifier."
       - "The agent is authorized to make compliance decisions for label applications. Authentication, authorization, and audit logging are not modeled by the prototype; the precondition is assumed."
-      - "The agent has opened the prototype in their browser."
 
-    trigger: "The agent has work to do — there are submissions in the queue, including (in the standard case) submissions whose verification has already finished and is ready to review. The standard case for the prototype is that processing has happened upstream of the agent opening the submission, so verification findings are already available; this is what makes the experience feel immediate even though the underlying analysis is not instantaneous."
+    trigger: "The agent opens the prototype to work through their queue."
 
     success_guarantee:
       - "The agent has reviewed the submission, recorded a compliance outcome, and the submission no longer appears in the active review queue."
@@ -248,6 +247,7 @@ use_cases:
       - "Is the queue purely chronological-with-priority, or does the system need explicit assignment of submissions to specific agents? The interview material implies a shared queue (Sarah Chen's 47 agents). The prototype assumes a single shared queue; per-agent assignment is deferred."
       - "Does the agent need a way to explicitly disagree with a 'tolerant match' result (UC-001.4c) — i.e., to mark a brand-name match the system accepted as actually-not-the-same-brand? The interview material does not say. The current assumption is that the agent simply records reject in step 6 and the per-field disagreement is implicit; a structured override is deferred."
       - "Is there an expectation that the agent's compliance decision triggers a return communication to the producer? In the production COLA workflow there clearly is, but the prototype is standalone (REQ-007 / F-021). For the prototype, the decision is recorded and the submission leaves the queue; out-of-band communication is the agent's manual step."
+      - "How does the live deployment ensure the agent's queue is non-empty on first arrival? The use case assumes the precondition holds (at least one submission in the queue). If a reviewer hits the live URL with an empty queue they have nothing to do at step 2. The current sprint plan flags this as a separate decision (pre-load fixtures into the deployed instance, show an empty-state with example fixtures and a 'drop a pair into the incoming directory to try' invitation, or both). This is a deployment-staging concern, not a use-case logic concern — UC-001 itself is unchanged either way."
 
     supports_requirements:
       - REQ-001
