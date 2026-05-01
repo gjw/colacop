@@ -1,32 +1,98 @@
 # Sprint Order
 
-Updated 2026-04-29 by Tower. Hard external deadline 2026-05-02.
+Updated 2026-04-30 by Tower (replan after xog landed). Hard external deadline 2026-05-02.
 
-## Committed sequence
+## Where we are
 
-1. **cc-scz** — Repo scaffolding (TS, Node 24, Kysely + pg, docker-compose for Postgres, .gitignore, .node-version, tsconfig, npm scripts including a tsx-based migrate runner). Trench-shaped. Single session.
-2. **cc-xog** — Vertical slice: ingestion path, worker, stub `analyzeLabel` provider, stub `verifyLabel` returning fixed Layer 1/Layer 2 results, minimal review UI. No real Gemini call yet — the slice exists to prove the seams. Trench-shaped.
-3. **cc-4fk** — Pick deployment target. Chair has already chosen the target; this issue is *documentation only*: write the choice into ARCHITECTURE.md and add deploy steps to README. Confirm specifics with Chair before writing.
-4. **cc-5ea** — TTB regulatory mini-pass. Add 1-2 source files (S-006, S-007), extract regulation-backed facts (F-046+) for warning text, mandatory fields, ABV format. Update REQ-011's `supported_by` to cite these new facts. Update REQ-005's `supported_by` likewise.
-5. **Reevaluate.** After 1-4 land, re-run `bv --robot-triage` and pick the next critical-path step. Likely candidates: real Gemini wiring inside the provider boundary (replacing the stub from cc-xog), TTB-rule check implementations driven by the new facts, fixture work (cc-htd), or deployment dry-run.
+xog has shipped. Stub provider; no Gemini wiring yet. Front-end loads. Watcher accepts dropped pairs. Chair has not yet audited the built code against the use case. Five Tower-shaped P0 decisions are closed; cc-5ea also closed (regulatory pass landed during xog work). Open issues: cc-xog (in progress, ready to mark complete after audit), cc-htd, cc-fk3, cc-64v, cc-hfv.
 
-## Parallelism opportunities
+## Replan rationale
 
-- `cc-htd` (sample-label fixtures) has no dependency on the critical path and can run in parallel with `cc-scz` or `cc-xog` if a second Trench session is available. Worth doing early so `cc-xog`'s stub can produce realistic-looking review-UI output for demo purposes.
-- `cc-5ea` is also independent of scaffolding; if Chair wants to spin up a second Trench, this is a clean parallel track.
+Earlier sequence (scz → xog → 4fk → 5ea → reevaluate) is largely done. The reevaluate step is now. Chair's correct instinct: do not generate more tickets against an unverified ground state. Audit first, then plan.
 
-## Decisions locked this session
+## Tomorrow's sequence (2026-04-30 → 2026-05-02)
 
-- **SQL access library:** Kysely. Closed `cc-ff6`. ARCHITECTURE.md and `cc-scz` design notes updated.
-- **Model provider:** Google Gemini 3.1 Pro Preview, via the Gemini API directly. Closed `cc-7qe`. ARCHITECTURE.md > Model Provider Boundary updated with the choice, exclusions (Anthropic on procurement grounds; xAI on beta-status grounds), production-swap path (Vertex AI Government / Azure / Bedrock), and the tightened interface (analyzeLabel on provider; verifyLabel is domain logic).
-- **Verification model:** two layers, per F-045 / REQ-011. Layer 1 (well-formedness) runs unconditionally; Layer 2 (comparison) runs when application data is supplied. Layer 2 is hybrid — deterministic for fields TTB requires exact (warning text, ABV format, net contents), LLM-assisted via Gemini for fields tolerated drift in (brand name, class/type).
-- **Input frame interpretation:** label image + application data. The assignment header is silent on this; F-044 records the committed interpretation so future readers do not silently re-derive a different scope.
-- **Input pairing model:** filename-stem pairing (`42.jpg` + `42.json`), one-to-one, JSON for application data, files in a pair may arrive in either order with re-pairing on later arrival (image-first: Layer 1 runs immediately, Layer 2 re-runs when JSON arrives; JSON-first: held in `awaiting_label` until image arrives). Recorded in F-046, REQ-012, and ARCHITECTURE.md > Input Pairing.
+1. **Use case authoring (cc-fk3).** Tower-shaped. Draft UC-001 (Verify alcohol label application) Cockburn-style from source material only — do not look at the running app. Main success scenario as numbered steps; extensions per the candidate list in `docs/handoff.md`. ~1-2 hours.
 
-## Open dependencies after this session
+2. **Scope pass.** Within UC-001, mark each step + extension as **WILL** / **WON'T** / **MAYBE** for the May 2 submission. Strawman in this file (see below); Chair to react. ~30 minutes.
 
-- `cc-xog` no longer depends on `cc-7qe` (removed 2026-04-29; the slice uses a stub provider).
-- `cc-xog` still depends on `cc-scz`.
-- `cc-fk3` (use cases) still depends on `cc-5ea`.
-- `cc-64v` (README polish) still depends on `cc-4fk` and `cc-xog`.
-- `cc-hfv` (handoff drift reconciliation) is P2 — defer until reevaluate.
+3. **Audit, on two axes.**
+   - *Functional:* walk xog's 8 acceptance criteria; mark each pass / partial / fail / unverified.
+   - *Use-case alignment:* walk UC-001 WILL steps; for each, does the built UI/data model/lifecycle make the agent's goal achievable?
+
+   ~1-2 hours combined. Chair drives, Tower assists.
+
+4. **Generate gap beads.** Each WILL gap → P0. Each SHOULD gap → P1. Each MAYBE that didn't fit → P3. ~30 minutes.
+
+5. **Execute remaining critical path.** In order:
+   - Real Gemini wiring (replace stub `analyzeLabel`) — Trench, ~2-4 hours.
+   - Fixtures (cc-htd) — Trench, ~2-4 hours; can run in parallel with Gemini wiring.
+   - Pre-load fixtures into prod DB at deploy time — Trench, ~1-2 hours.
+   - WILL gap fixes from audit — wildcard.
+   - Deploy dry-run on Linode — Trench/Chair, ~2-4 hours (always longer than expected).
+   - README + scope-doc polish (cc-64v) — Tower or Trench, ~1-2 hours.
+   - Final smoke test on live URL — Chair, ~30 minutes.
+
+## Strawman scope for UC-001 (Chair reacts in the morning)
+
+### WILL (non-negotiable for May 2)
+
+- Drop a paired image + JSON into `data/incoming/` → job appears in UI within seconds with Layer 1 + Layer 2 per-field results populated.
+- Real Gemini call wired (not stub) — `analyzeLabel` returns honest extracted fields from the image.
+- 5-8 realistic fixtures pre-loaded on the live deployment so the queue is not empty when a reviewer arrives.
+- Layer 1 + Layer 2 visually distinguishable in UI; per-field verdict + reason visible.
+- Live URL accessible and stable.
+- README that lets the reviewer run locally without reverse-engineering anything.
+- 5-second perceived latency for opening a job (already true if processing is async — verify in audit).
+
+### SHOULD (do if WILL is in the bag)
+
+- Browser upload UI for paired or label-only submission (assignment doesn't strictly require, but missing it makes the demo feel watcher-only).
+- LLM-assisted Layer 2 for brand/class/type drift (architecture documented; defer if slow).
+- `extraction_confidence` per-field badge actually populated by Gemini logprobs/self-rating, not stubbed.
+- Image-quality / unreadable-label graceful degradation visible in fixtures.
+- Re-pair on later sibling arrival (already in xog acceptance #4 — verify in audit).
+
+### WON'T (explicit, documented in README)
+
+- Same-stem replacement (F-057).
+- Out-of-band application-data fetch by COLA filing ID.
+- Zip+manifest or other bundled ingestion.
+- Multi-label per application.
+- Auth, PII handling, audit logs.
+- Production-grade error reporting beyond `failed` lifecycle.
+- COLA integration in any direction.
+
+## Constraints discovered during replan
+
+**Empty-queue problem.** A reviewer who hits colacop.foramerica.dev should not see an empty queue. Fixtures must be **pre-loaded into the deployed instance**. This is a constraint on cc-htd (fixtures must be checked in) and on the deploy workflow (run fixtures through the watcher at deploy time, or seed the DB).
+
+**Reviewer-burning-API-credits problem.** Live Gemini calls per reviewer click cost real money. Recommend pre-compute-and-store: fixtures get processed once at deploy time, results live in the DB, live ingestion is feature-flagged off in production (or rate-limited). README documents that live ingestion works locally. Reviewer gets real, deterministic experience; Chair doesn't pay for clicks.
+
+## Decisions locked across all sessions
+
+- **SQL access library:** Kysely (cc-ff6 closed).
+- **Model provider:** Google Gemini 3.1 Pro Preview via direct Gemini API (cc-7qe closed). Anthropic and xAI excluded; OpenAI is the fallback.
+- **Verification model:** two layers, per F-045 / REQ-011. Layer 1 well-formedness runs unconditionally; Layer 2 comparison runs when application data is supplied. Hybrid: deterministic for fields TTB requires exact, LLM-assisted (same provider) for fields with tolerated drift.
+- **Input frame interpretation:** label image + application data (F-044).
+- **Input pairing model:** filename-stem pairing, one-to-one, JSON for application data, re-pair on later sibling arrival (F-046, REQ-012).
+- **Deployment target:** Linode 16 GB linode43393 in US Dallas TX, https://colacop.foramerica.dev (cc-4fk closed). Manual ssh + git pull deploy.
+- **TTB regulatory grounding:** F-047 (warning exact text), F-048 (GOVERNMENT WARNING caps + bold), F-051/F-053/F-054 (mandatory-field rules), F-052 (wine ABV format/tolerance), F-056 (extraction_confidence buckets), F-057 (same-stem replacement out of scope) — all landed via cc-5ea.
+
+## Open issues post-replan
+
+- **cc-xog** [in_progress] — pending Chair audit, then close.
+- **cc-fk3** [open, ready] — UC-001 authoring; tomorrow morning's first action.
+- **cc-htd** [open, ready] — fixtures; do in parallel with Gemini wiring.
+- **cc-64v** [open, blocked-by cc-xog] — README polish; near-final task.
+- **cc-hfv** [open, P2] — handoff doc drift; defer unless time slack permits.
+
+## What is not yet a bead
+
+These will be filed after the audit:
+
+- Real Gemini wiring (replace stub analyzeLabel).
+- Pre-load fixtures into production DB at deploy time.
+- Linode deploy dry-run + nginx vhost + PM2 ecosystem config.
+- Possibly: feature-flag live ingestion off in production.
+- Whatever WILL gaps the audit surfaces.

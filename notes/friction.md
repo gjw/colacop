@@ -84,3 +84,67 @@ team-side decisions can follow this pattern.
 `prompts/tower.md` and in this repo's discovery docs. Make `claim_kind: inferred`
 + `fact_type: scope_decision` a first-class shape in the schema, not an
 ad-hoc convention.
+
+## 2026-04-30
+
+### F4 — Tower kept building specs against unverified ground state
+
+**What happened.** After cc-scz scaffolding closed, Tower iterated through
+cc-7qe (provider pick), cc-5ea (regulatory pass), cc-4fk (deployment target),
+F-046 / REQ-012 (input pairing model), and the cc-xog design notes themselves
+— all while cc-xog was in flight. By the time Chair sat down to audit the
+running prototype, Tower had layered three more decisions on top of an
+unverified implementation. Chair's instinct to "back out and define the use
+case" was correct: continuing to plan against ground state we hadn't
+inspected was accumulating risk.
+
+**Why this is friction.** Tower's mandate is planning, but planning without
+periodic ground-state verification means spec drifts away from reality.
+Trench produces *something*, Tower keeps elaborating the spec, and by the
+time Chair audits, the gap between spec and code may have several decisions
+piled on top — making it expensive to roll back if any of them is misaligned.
+
+The structural problem: there is no role explicitly responsible for "stop and
+verify what Trench shipped before Tower writes more specs against it." Tower
+plans forward; Trench builds; Chair coordinates. Nobody is the audit role
+between Trench-shipped and Tower-elaborates-further.
+
+**Fix applied.** None yet — surfaced by Chair, not by the system. The
+sprint-order.md replan now treats audit as a gating step before any
+further bead generation.
+
+**Proposed structural fix.** This is what the Warden / Audit role is for in
+the role lineup (see CLAUDE.md / prompts/tower.md). The take-home prototype
+has not been running Warden because the project is small and the agent count
+is intentionally minimal. But for a multi-day, multi-Trench project, an
+explicit Warden:Audit pass after each Trench-shipped task — *before* Tower
+writes the next batch of beads against it — would have caught this.
+
+For this project specifically, the lightweight version is: Tower should not
+write new beads against an in-progress task's outputs until Chair has
+performed a smoke test of the previous task's deliverable. Add this to
+prompts/tower.md as a session-start checklist item.
+
+### F5 — Use case authoring deferred too long
+
+**What happened.** UC-001 (the Cockburn-style use case) has been on the
+queue as cc-fk3 since the original task graph was created, blocked on
+cc-5ea. cc-5ea has been closed for over a session, and yet the use case
+still has not been written, while ARCHITECTURE.md and the data model have
+continued to evolve. cc-xog was implemented entirely without UC-001 ever
+being written.
+
+**Why this is friction.** Use cases sit between requirements and
+architecture. Skipping them means architecture is being asked to satisfy
+requirements without an intermediate description of *how an actor uses the
+system to accomplish a goal*. The actor's perspective is what reveals
+whether the architecture's affordances are good — which is exactly the
+question Chair is now asking after seeing the running app.
+
+**Fix applied.** Replan promotes use case authoring to the next action,
+ahead of any further code work.
+
+**Proposed structural fix.** In `prompts/tower.md` cold-start mode, do not
+allow Step 3 (Task Breakdown) to start before Step 2.5 (use cases) is
+written. Use cases are not optional connective tissue; they are the
+contract between requirements and architecture.
