@@ -1,0 +1,302 @@
+# Use cases for the colacop prototype.
+#
+# Cockburn-style: ONE main use case (UC-001) with rich extensions, not a
+# scattershot of UC-001/UC-002/UC-003. Level: user goal. The actor is the TTB
+# compliance agent; the system is the colacop prototype. The point is to
+# describe how the agent accomplishes the verification goal — independent of
+# how the prototype currently happens to support it.
+#
+# Architecture-shaped detail (lifecycle enum values, verdict enum values,
+# file-watcher mechanics, schema, framework choices) belongs in
+# ARCHITECTURE.md and stays there. This file deliberately speaks of "the
+# queue", "the system", "regulatory well-formedness findings", and
+# "comparison findings between the extracted label and the application data"
+# rather than of "data/incoming/", "queued/processing/processed lifecycle",
+# "Layer 1 / Layer 2", "verdict pass/fail/needs_review", or any specific
+# stack term.
+
+use_cases:
+  - id: UC-001
+    title: "Verify an alcohol label application"
+    primary_actor: "TTB compliance agent"
+    scope: "colacop prototype"
+    level: "user goal"
+
+    stakeholders:
+      - actor: "TTB compliance agent"
+        interest: "Move through the review queue quickly without losing review judgment, and avoid being slowed down by the tool relative to manual review."
+      - actor: "TTB (agency)"
+        interest: "Every approved label complies with federal regulation; non-compliant labels are caught; the per-label review is auditable to the extent the prototype supports auditability."
+      - actor: "Producer / applicant"
+        interest: "Receive an accurate, timely review of their COLA submission. Producers are not modeled as actors of the prototype — they appear only as the upstream source of the submitted label image and application data."
+      - actor: "Public"
+        interest: "Approved labels carry the regulation-defined health warning and accurate product information."
+
+    preconditions:
+      - "A label submission exists in the agent's queue. A submission consists of a label image and, in the standard case, corresponding application data describing what the producer claims is on the label. Either part of the pair may arrive first; the system reconciles them by their shared identifier."
+      - "The agent is authorized to make compliance decisions for label applications. Authentication, authorization, and audit logging are not modeled by the prototype; the precondition is assumed."
+      - "The agent has opened the prototype in their browser."
+
+    trigger: "The agent has work to do — there are submissions in the queue, including (in the standard case) submissions whose verification has already finished and is ready to review. The standard case for the prototype is that processing has happened upstream of the agent opening the submission, so verification findings are already available; this is what makes the experience feel immediate even though the underlying analysis is not instantaneous."
+
+    success_guarantee:
+      - "The agent has reviewed the submission, recorded a compliance outcome, and the submission no longer appears in the active review queue."
+      - "Regulatory well-formedness findings and application-comparison findings are visible to the agent and persisted for later inspection."
+    minimal_guarantee:
+      - "No partial outcome is silently recorded as a final compliance decision; if the agent does not act, the submission remains in the queue with its findings intact."
+
+    main_success_scenario:
+      - step: 1
+        actor_action: "The agent opens the prototype to work through their queue."
+        system_response: "The system shows a queue of label submissions, with items whose verification findings are ready (and items the system has flagged for human attention) prioritized over items still being processed."
+      - step: 2
+        actor_action: "The agent selects a submission to review."
+        system_response: "The system opens a detail view for that submission showing the label image, the application data submitted with it, and the verification findings."
+      - step: 3
+        actor_action: "The agent inspects the regulatory well-formedness findings for the label."
+        system_response: "The system shows, per regulatory check (mandatory fields present on the label, government warning text and formatting, alcohol-content format), the outcome and a brief reason."
+      - step: 4
+        actor_action: "The agent inspects the comparison findings between the extracted label and the application data."
+        system_response: "The system shows, per comparable field (brand name, class/type designation, alcohol content, net contents, producer name and address, and country of origin where applicable), the value extracted from the label, the value supplied in the application, the comparison outcome, and a brief reason."
+      - step: 5
+        actor_action: "The agent attends to any field the system has flagged for human attention, using the adjacent label image for visual confirmation."
+        system_response: "The system surfaces the flagged fields visibly and explains why each was not auto-decided — for example, the system's read of the label was uncertain, the field is missing from the application data, or the rule is one that requires human judgment to apply."
+      - step: 6
+        actor_action: "The agent records a compliance decision for the submission (approve, reject, or send back for additional information)."
+        system_response: "The system persists the decision and removes the submission from the active review queue."
+      - step: 7
+        actor_action: "The agent moves to the next submission."
+        system_response: "The system returns the agent to the queue, with the just-reviewed submission no longer at the top."
+
+    extensions:
+
+      - id: "UC-001.1a"
+        condition: "A large batch of submissions has recently arrived (peak-season importer drop, on the order of 200-300 at once)."
+        steps:
+          - "The system continues to accept new submissions into the queue without blocking the agent's current review."
+          - "The system shows the agent how many submissions are queued, how many are still being processed, and how many are ready for review, so the agent can pace their work."
+          - "The agent works through ready items first; in-flight items become ready as their verification finishes, and the agent picks them up on their next pass through the queue."
+        supports_requirements:
+          - REQ-003
+          - REQ-008
+        references_facts:
+          - F-014
+          - F-015
+          - F-016
+
+      - id: "UC-001.1b"
+        condition: "Application data has arrived for a submission whose label image has not yet arrived."
+        steps:
+          - "The submission appears in the queue with no findings yet, marked as waiting for the label image."
+          - "The agent skips the submission and continues with other ready items."
+          - "When the label image arrives, the system produces both the regulatory well-formedness findings and the comparison findings, and the submission becomes ready for review; the agent then resumes from step 2."
+        supports_requirements:
+          - REQ-012
+        references_facts:
+          - F-046
+
+      - id: "UC-001.2a"
+        condition: "The selected submission is still being processed and has no verification findings yet."
+        steps:
+          - "The system shows the submission's processing state instead of an empty findings view."
+          - "The agent either waits briefly (results are expected within seconds, not minutes — that latency tolerance is what the prototype is designed for) or returns to the queue and picks a different ready submission."
+          - "When processing finishes, the submission becomes ready in the queue and the agent can resume from step 2."
+        supports_requirements:
+          - REQ-001
+          - REQ-003
+        references_facts:
+          - F-006
+          - F-009
+          - F-010
+
+      - id: "UC-001.2b"
+        condition: "The selected submission could not be processed (the system was unable to produce verification findings — for example, the model provider was unreachable, the network blocked the call, or the submitted file was unreadable as an image)."
+        steps:
+          - "The system shows the submission as not-processable and explains, in plain language, why no verification findings could be produced."
+          - "The agent reviews the label by eye if practical, or marks the submission for re-submission or follow-up; the agent is not expected to debug the underlying technical failure."
+        supports_requirements:
+          - REQ-006
+          - REQ-008
+        references_facts:
+          - F-025
+          - F-026
+          - F-042
+          - F-043
+
+      - id: "UC-001.3a"
+        condition: "The label is missing one or more fields the regulation requires for its commodity (for example, a wine label without an alcohol-content statement, or a distilled-spirits label without a net-contents statement)."
+        steps:
+          - "The system reports the missing field as a regulatory failure under well-formedness, with a brief reason citing the rule (mandatory field absent)."
+          - "The agent uses this finding when recording the compliance decision in step 6 — typically reject or send back for additional information."
+        supports_requirements:
+          - REQ-004
+          - REQ-011
+        references_facts:
+          - F-005
+          - F-051
+          - F-053
+          - F-054
+
+      - id: "UC-001.3b"
+        condition: "The government warning text or formatting on the label violates the regulatory rule (missing or wrong wording, the opening words rendered as 'Government Warning' instead of 'GOVERNMENT WARNING', the opening words not in bold, or the warning buried in a way the regulation does not allow)."
+        steps:
+          - "The system reports the warning check as a regulatory failure and notes which aspect of the rule was violated (text mismatch versus typography violation versus placement issue)."
+          - "The agent confirms the violation against the label image and uses this finding when recording the compliance decision in step 6."
+        supports_requirements:
+          - REQ-005
+          - REQ-011
+        references_facts:
+          - F-035
+          - F-036
+          - F-037
+          - F-038
+          - F-047
+          - F-048
+
+      - id: "UC-001.3c"
+        condition: "The system's read of the label was uncertain for one or more fields — for example, the label was photographed at a bad angle, the lighting was poor, there is glare on the bottle, or the relevant text was small or obscured."
+        steps:
+          - "The system shows the affected fields with a low read-confidence indicator, presented as a separate signal from the verification outcome (the agent should be able to tell 'the label says X and X is wrong' apart from 'we think the label says X but the image was hard to read')."
+          - "The agent verifies the affected fields by eye against the adjacent label image and proceeds with their own judgment."
+          - "If the entire label is too unreadable to verify, the agent marks the submission for re-submission with a better image (consistent with current TTB practice for unreadable labels)."
+        supports_requirements:
+          - REQ-006
+          - REQ-009
+        references_facts:
+          - F-039
+          - F-040
+          - F-041
+          - F-056
+
+      - id: "UC-001.4a"
+        condition: "A comparable field clearly matches between the label and the application data — for example, the brand on the label and in the application are the same string, or the alcohol content on the label is within the regulation-defined tolerance of the application value."
+        steps:
+          - "The system reports the field as a clear match and the agent moves on without action."
+        supports_requirements:
+          - REQ-004
+          - REQ-006
+        references_facts:
+          - F-004
+          - F-005
+          - F-007
+          - F-052
+
+      - id: "UC-001.4b"
+        condition: "A comparable field clearly mismatches between the label and the application data — for example, the brand on the label is 'Acme Bourbon' and the application says 'Beta Rye', or the alcohol content differs by more than the regulation-defined tolerance."
+        steps:
+          - "The system reports the field as a clear mismatch and shows both values with a brief reason."
+          - "The agent confirms the mismatch against the label image and uses this finding when recording the compliance decision in step 6."
+        supports_requirements:
+          - REQ-004
+          - REQ-006
+        references_facts:
+          - F-007
+          - F-008
+          - F-052
+
+      - id: "UC-001.4c"
+        condition: "The brand name on the label differs from the application only by capitalization, punctuation, or other ornamental variation — for example, 'STONE'S THROW' on the label versus 'Stone's Throw' in the application."
+        steps:
+          - "The system reports the field as a tolerant match, noting that the values differ in form but refer to the same brand."
+          - "The agent typically accepts the tolerant match without further action; if the agent disagrees with the tolerance call, they treat it as a flagged item per step 5."
+        supports_requirements:
+          - REQ-005
+          - REQ-006
+        references_facts:
+          - F-029
+          - F-030
+
+      - id: "UC-001.4d"
+        condition: "The submission has no application data at all — only the label image arrived. (Distinct from UC-001.1b, where only the application has arrived; here only the label has arrived.)"
+        steps:
+          - "The regulatory well-formedness findings from step 3 are still produced and reviewable; these do not depend on application data."
+          - "The system shows each comparable field as not yet comparable because no application data has been supplied, rather than reporting a comparison outcome."
+          - "The agent either waits for the application data to arrive — in which case the system fills in the comparison findings without re-doing the regulatory checks — or makes a partial decision based on the regulatory findings alone."
+        supports_requirements:
+          - REQ-011
+          - REQ-012
+        references_facts:
+          - F-045
+          - F-046
+
+      - id: "UC-001.4e"
+        condition: "The application data is present but a specific field is missing from it — for example, the application omits country of origin for what turns out to be an imported product."
+        steps:
+          - "The system reports that specific field as awaiting the missing application value, while comparing the other fields normally."
+          - "The agent either requests the missing field from the applicant or makes the compliance decision based on the available information, depending on the field's importance to the determination."
+        supports_requirements:
+          - REQ-004
+          - REQ-011
+          - REQ-012
+        references_facts:
+          - F-045
+          - F-046
+
+    out_of_scope:
+      - "Direct integration with the COLA system (e.g., looking up an application by COLA filing ID, writing decisions back to COLA, treating the prototype as part of the COLA workflow). The prototype is a standalone proof of concept (REQ-007 / F-021)."
+      - "Multiple labels per single application (variant sizes of the same product, etc.). Each variant is a separate filing in the COLA model and a separate submission in the prototype (F-046)."
+      - "Bundled ingestion formats such as zip-with-manifest or tar streams (F-046)."
+      - "Same-stem content replacement: dropping a new file with the same identifier as an already-processed submission is undefined behavior in the prototype; a production system would version inputs and re-run affected checks on change (F-057)."
+      - "Authentication, authorization, audit logging, and PII handling. The prototype does not store sensitive data and does not model agent identity (F-024 / REQ-007)."
+      - "Type-size measurement of the warning statement against 27 CFR 16.22 minimums (F-049). The prototype checks warning text and capitalization but not millimeter-level type size."
+      - "Class/type controlled-vocabulary validation against the TTB Subpart I enumerations (F-055). The prototype's class/type comparison relies on the model's understanding rather than a regulation-derived enumeration."
+      - "Verdict-level numeric confidence score. The system's certainty about compliance is encoded in the per-field outcome (clear match / clear mismatch / flagged for human attention), not as a separate numeric column (F-056)."
+      - "Push notification of agents when a previously-flagged submission becomes actionable (e.g., late application data finally arrived). The agent re-checks the queue rather than receiving a notification."
+
+    open_questions:
+      - "What does the agent need to record at step 6 beyond approve / reject / send-back? The interview material does not specify a structured decision schema. The current scope assumes a single per-submission outcome plus an optional note; a richer structured outcome (e.g., per-field rejection reasons attached to the decision) is deferred until a stakeholder asks."
+      - "Is the queue purely chronological-with-priority, or does the system need explicit assignment of submissions to specific agents? The interview material implies a shared queue (Sarah Chen's 47 agents). The prototype assumes a single shared queue; per-agent assignment is deferred."
+      - "Does the agent need a way to explicitly disagree with a 'tolerant match' result (UC-001.4c) — i.e., to mark a brand-name match the system accepted as actually-not-the-same-brand? The interview material does not say. The current assumption is that the agent simply records reject in step 6 and the per-field disagreement is implicit; a structured override is deferred."
+      - "Is there an expectation that the agent's compliance decision triggers a return communication to the producer? In the production COLA workflow there clearly is, but the prototype is standalone (REQ-007 / F-021). For the prototype, the decision is recorded and the submission leaves the queue; out-of-band communication is the agent's manual step."
+
+    supports_requirements:
+      - REQ-001
+      - REQ-002
+      - REQ-003
+      - REQ-004
+      - REQ-005
+      - REQ-006
+      - REQ-007
+      - REQ-008
+      - REQ-009
+      - REQ-010
+      - REQ-011
+      - REQ-012
+
+    references_facts:
+      - F-001
+      - F-002
+      - F-004
+      - F-005
+      - F-006
+      - F-007
+      - F-008
+      - F-009
+      - F-010
+      - F-013
+      - F-014
+      - F-015
+      - F-016
+      - F-025
+      - F-026
+      - F-029
+      - F-030
+      - F-035
+      - F-036
+      - F-037
+      - F-038
+      - F-039
+      - F-040
+      - F-041
+      - F-042
+      - F-043
+      - F-044
+      - F-045
+      - F-046
+      - F-047
+      - F-048
+      - F-051
+      - F-052
+      - F-053
+      - F-054
+      - F-056
