@@ -20,3 +20,7 @@ data/failed/*
 !data/processing/.gitkeep
 !data/processed/.gitkeep
 !data/failed/.gitkeep
+
+# Raw fixture inputs (workshop material — processed composites under
+# fixtures/labels/ and fixtures/applications/ are the committed deliverables)
+fixtures/raw/
