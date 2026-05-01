@@ -6,7 +6,7 @@ import {
   getJob,
   listJobs,
   uploadFiles,
-} from "./api.js";
+} from "./apiClient";
 
 const FILTERS: Array<{ key: Lifecycle | "all"; label: string }> = [
   { key: "all", label: "All" },
