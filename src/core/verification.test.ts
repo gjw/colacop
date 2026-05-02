@@ -48,6 +48,43 @@ describe("parseAbv", () => {
   it("returns null for malformed text", () => {
     expect(parseAbv("really strong")).toBe(null);
   });
+
+  // Real Gemini outputs from fixtures/raw/*.extraction.json. Each is a
+  // CFR-compliant ABV declaration; parseAbv must recognize all of them.
+  const realLabelStrings: Array<[string, number]> = [
+    ["40% alc./vol.", 40],
+    ["ALC. 16.5% BY VOL.", 16.5],
+    ["47% alc./vol.", 47],
+    ["50% ALC/VOL", 50],
+    ["40% ALC. BY VOL.", 40],
+  ];
+  for (const [input, expected] of realLabelStrings) {
+    it(`parses observed Gemini output ${JSON.stringify(input)}`, () => {
+      expect(parseAbv(input)).toBe(expected);
+    });
+  }
+
+  it("returns null for non-ABV text Gemini extracted ('100% PURO AGAVE')", () => {
+    expect(parseAbv("100% PURO AGAVE")).toBe(null);
+  });
+
+  // 27 CFR 5.65: spirits may state proof alongside %ABV. The % is what we
+  // parse; the proof tail is optional decoration we ignore.
+  const proofTailCases: Array<[string, number]> = [
+    ["40% Alc/Vol (80 Proof)", 40],
+    ["40% ALC./VOL. 80 PROOF", 40],
+    ["50% ALC/VOL (100 PROOF)", 50],
+    ["Alcohol 40% by vol. 80 proof", 40],
+  ];
+  for (const [input, expected] of proofTailCases) {
+    it(`parses ABV with optional proof tail ${JSON.stringify(input)}`, () => {
+      expect(parseAbv(input)).toBe(expected);
+    });
+  }
+
+  it("returns null when only proof is given (no %ABV)", () => {
+    expect(parseAbv("80 PROOF")).toBe(null);
+  });
 });
 
 describe("abvTolerance", () => {

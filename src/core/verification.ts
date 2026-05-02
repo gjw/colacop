@@ -10,8 +10,20 @@ import type {
 export const REGULATION_WARNING =
   "GOVERNMENT WARNING: (1) According to the Surgeon General, women should not drink alcoholic beverages during pregnancy because of the risk of birth defects. (2) Consumption of alcoholic beverages impairs your ability to drive a car or operate machinery, and may cause health problems.";
 
-const ABV_FORMAT = /^\s*(?:alcohol|alc\.?)\s*(\d+(?:\.\d+)?)\s*%\s*(?:by\s*)?(?:vol\.?|volume)?\s*$/i;
-const ABV_SHORTHAND = /^\s*(\d+(?:\.\d+)?)\s*%\s*alc\s*\/?\s*vol\.?\s*$/i;
+// Optional trailing proof clause. Per 27 CFR 5.65 spirits may state proof in
+// direct conjunction with %ABV; the % is what we parse, proof is decoration.
+// Accepts: ' (80 PROOF)', ' 80 PROOF', ' 80° proof.'
+const PROOF_TAIL = "(?:\\s+\\(?\\s*\\d+(?:\\.\\d+)?\\s*°?\\s*proof\\.?\\s*\\)?)?";
+const ABV_FORMAT = new RegExp(
+  `^\\s*(?:alcohol|alc\\.?)\\s*(\\d+(?:\\.\\d+)?)\\s*%\\s*(?:by\\s*)?(?:vol\\.?|volume)?${PROOF_TAIL}\\s*$`,
+  "i",
+);
+// Shorthand covers CFR-compliant variants observed on real labels:
+// '13.5% alc/vol', '40% alc./vol.', '40% ALC. BY VOL.', '50% ALC/VOL'.
+const ABV_SHORTHAND = new RegExp(
+  `^\\s*(\\d+(?:\\.\\d+)?)\\s*%\\s*alc\\.?\\s*(?:\\/|by\\s+)\\s*vol\\.?${PROOF_TAIL}\\s*$`,
+  "i",
+);
 
 export function parseAbv(text: string): number | null {
   const m1 = ABV_FORMAT.exec(text);

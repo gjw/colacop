@@ -1,0 +1,42 @@
+{
+  "brandName": {
+    "value": "ESPOLON",
+    "confidence": "hi",
+    "confidenceRaw": 0.95
+  },
+  "classType": {
+    "value": "TEQUILA BLANCO",
+    "confidence": "med",
+    "confidenceRaw": 0.7
+  },
+  "alcoholContent": {
+    "value": "100% PURO AGAVE",
+    "confidence": "hi",
+    "confidenceRaw": 0.95
+  },
+  "netContents": {
+    "value": "",
+    "confidence": "low",
+    "confidenceRaw": null
+  },
+  "producerName": {
+    "value": "CAMPARI MEXICO, S.A. DE C.V.",
+    "confidence": "hi",
+    "confidenceRaw": 0.95
+  },
+  "producerAddress": {
+    "value": "CAMINO REAL ATOTONILCO NO. 1081, COL. LA TRINIDAD, SAN IGNACIO CERRO GORDO, JALISCO, MEXICO, C.P. 47190",
+    "confidence": "hi",
+    "confidenceRaw": 0.95
+  },
+  "governmentWarning": {
+    "value": "GOVERNMENT WARNING: (1) ACCORDING TO THE SURGEON GENERAL, WOMEN SHOULD NOT DRINK ALCOHOLIC BEVERAGES DURING PREGNANCY BECAUSE OF THE RISK OF BIRTH DEFECTS. (2) CONSUMPTION OF ALCOHOLIC BEVERAGES IMPAIRS YOUR ABILITY TO DRIVE A CAR OR OPERATE MACHINERY, AND MAY CAUSE HEALTH PROBLEMS.",
+    "confidence": "hi",
+    "confidenceRaw": 0.95
+  },
+  "countryOfOrigin": {
+    "value": "PRODUCT OF MEXICO",
+    "confidence": "hi",
+    "confidenceRaw": 0.95
+  }
+}

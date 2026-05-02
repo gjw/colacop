@@ -29,3 +29,4 @@ data/failed/*
 # fixtures/labels/ and fixtures/applications/ are the committed deliverables)
 fixtures/raw/*
 !fixtures/raw/README.md
+!fixtures/raw/*.extraction.json
