@@ -148,3 +148,49 @@ ahead of any further code work.
 allow Step 3 (Task Breakdown) to start before Step 2.5 (use cases) is
 written. Use cases are not optional connective tissue; they are the
 contract between requirements and architecture.
+
+## 2026-05-02
+
+### F6 — Parsing-bug bead written from invented input strings
+
+**What happened.** cc-9cx was filed as a P0 demo-blocker after live testing
+in cc-7w9 surfaced ABV format failures. The bead body listed four
+hypothetical Gemini-output strings the regex "likely" rejected and
+recommended broadening parseAbv against them. When Trench actually tested
+those strings against the current regex, three of the four already parsed
+correctly; the bead's hypothesis would have produced a regex change that
+addressed almost none of the real failures. The actual breakage (period
+after `alc`, `by\s+` separator) only became visible after re-running
+Gemini against all 6 fixtures and capturing the raw output — which the
+original cc-7w9 work had not preserved.
+
+**Why this is friction.** Tower wrote a parsing-bug spec from imagined
+inputs rather than captured ones. This is the same pattern as F1 (load-
+bearing interpretations escaping fact-capture) but at the implementation
+layer: a bead's "observed during live testing" is load-bearing if it
+drives the fix, and inventing the symptoms — even plausibly — produces
+specs that look grounded but aren't. Worse, the bead's specificity made
+it sound rigorous: four labeled cases, one suggested approach. A Trench
+agent following the bead literally would have shipped an incomplete fix
+and a passing test suite that proved nothing about the real failures.
+
+**Fix applied.** Trench captured real Gemini extractions to
+`fixtures/raw/*.extraction.json` before changing the regex, then wrote
+the test against the captured strings rather than the bead's invented
+ones. The cc-9cx fix landed correctly. Filed cc-fsa as a separate
+prompt-tuning follow-up (Gemini canonicalizes proof tails).
+
+**Proposed structural fix.** Two places in `prompts/tower.md`:
+
+1. **Bead-writing guideline for parsing/regex/extraction bugs:** if a
+   bead claims a parser rejects specific inputs, those inputs must be
+   *captured* (real tool output, paste-quoted) — not *hypothesized*.
+   Hypothetical examples are fine in the suggested-approach section as
+   illustrations, but the "what's broken" claim needs evidence.
+2. **Live-testing artifacts must be preserved.** When a bead like cc-7w9
+   wires a real provider end-to-end and surfaces regressions, the raw
+   tool output should be saved to a versioned location (e.g.
+   `fixtures/raw/*.extraction.json`) before the next bead is filed. The
+   captures cost API spend and are the empirical record that subsequent
+   parsing/format beads should test against. cc-9cx surfaced this
+   absence — the live test ran but nothing was kept.
