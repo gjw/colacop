@@ -64,6 +64,8 @@ npm run dev
 
 Then open the URL printed by Vite. Drop label/JSON pairs into `data/incoming/` to exercise the watcher path, or use the browser upload UI.
 
+Real label extraction requires `GEMINI_API_KEY` in your environment; without it the worker falls back to a stub provider that returns canned fixture data.
+
 ## How the live deployment is updated
 
 For reviewers who care about the deploy story:

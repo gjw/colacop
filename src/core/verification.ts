@@ -237,7 +237,13 @@ export function runLayer2(
   const results: Layer2FieldResult[] = [
     compareBrand(extracted.brandName, application.brandName),
     compareString("classType", extracted.classType, application.classType),
-    compareAbv(extracted.alcoholContent, application.alcoholContent),
+    application.alcoholContent !== undefined
+      ? compareAbv(extracted.alcoholContent, application.alcoholContent)
+      : l2(
+          "alcoholContent",
+          "needs_application_data",
+          "Alcohol content not declared in application.",
+        ),
     compareString("netContents", extracted.netContents, application.netContents),
     compareString("producerName", extracted.producerName, application.producerName),
     compareString(
@@ -246,20 +252,28 @@ export function runLayer2(
       application.producerAddress,
     ),
   ];
-  if (application.countryOfOrigin !== undefined) {
-    results.push(
-      l2(
-        "countryOfOrigin",
-        "needs_review",
-        `Application declares country of origin '${application.countryOfOrigin}'; label image does not extract this field separately.`,
-      ),
-    );
-  } else {
+  if (application.countryOfOrigin === undefined) {
     results.push(
       l2(
         "countryOfOrigin",
         "needs_application_data",
         "Country of origin not declared in application (optional for domestic).",
+      ),
+    );
+  } else if (extracted.countryOfOrigin === undefined) {
+    results.push(
+      l2(
+        "countryOfOrigin",
+        "needs_review",
+        `Application declares country of origin '${application.countryOfOrigin}'; label image does not show this field.`,
+      ),
+    );
+  } else {
+    results.push(
+      compareString(
+        "countryOfOrigin",
+        extracted.countryOfOrigin,
+        application.countryOfOrigin,
       ),
     );
   }

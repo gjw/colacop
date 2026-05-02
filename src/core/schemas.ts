@@ -3,7 +3,7 @@ import { z } from "zod";
 export const applicationDataSchema = z.object({
   brandName: z.string().min(1),
   classType: z.string().min(1),
-  alcoholContent: z.number().nonnegative(),
+  alcoholContent: z.number().nonnegative().optional(),
   netContents: z.string().min(1),
   producerName: z.string().min(1),
   producerAddress: z.string().min(1),
@@ -30,6 +30,7 @@ export const extractedFieldsSchema = z.object({
   netContents: extractedFieldSchema,
   producerName: extractedFieldSchema,
   producerAddress: extractedFieldSchema,
+  countryOfOrigin: extractedFieldSchema.optional(),
   governmentWarning: extractedFieldSchema,
 });
 

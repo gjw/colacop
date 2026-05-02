@@ -153,6 +153,53 @@ describe("runLayer2", () => {
   });
 });
 
+describe("runLayer2 — countryOfOrigin", () => {
+  it("reports needs_application_data when application omits it (domestic)", () => {
+    const r = runLayer2(baseExtracted, baseApp);
+    const c = r.find((x) => x.fieldName === "countryOfOrigin");
+    expect(c?.verdict).toBe("needs_application_data");
+  });
+
+  it("compares when both extraction and application have it", () => {
+    const r = runLayer2(
+      { ...baseExtracted, countryOfOrigin: hi("France") },
+      { ...baseApp, countryOfOrigin: "France" },
+    );
+    const c = r.find((x) => x.fieldName === "countryOfOrigin");
+    expect(c?.verdict).toBe("pass");
+  });
+
+  it("fails when application says one country and extraction shows another", () => {
+    const r = runLayer2(
+      { ...baseExtracted, countryOfOrigin: hi("Mexico") },
+      { ...baseApp, countryOfOrigin: "France" },
+    );
+    const c = r.find((x) => x.fieldName === "countryOfOrigin");
+    expect(c?.verdict).toBe("fail");
+  });
+
+  it("needs_review when application has it but extraction does not", () => {
+    const r = runLayer2(baseExtracted, { ...baseApp, countryOfOrigin: "France" });
+    const c = r.find((x) => x.fieldName === "countryOfOrigin");
+    expect(c?.verdict).toBe("needs_review");
+  });
+});
+
+describe("runLayer2 — absent ABV in application", () => {
+  it("reports needs_application_data when application omits alcoholContent", () => {
+    const appNoAbv: ApplicationData = {
+      brandName: baseApp.brandName,
+      classType: baseApp.classType,
+      netContents: baseApp.netContents,
+      producerName: baseApp.producerName,
+      producerAddress: baseApp.producerAddress,
+    };
+    const r = runLayer2(baseExtracted, appNoAbv);
+    const a = r.find((x) => x.fieldName === "alcoholContent");
+    expect(a?.verdict).toBe("needs_application_data");
+  });
+});
+
 describe("verifyLabel integration", () => {
   it("returns both layers", () => {
     const r = verifyLabel(baseExtracted, baseApp);

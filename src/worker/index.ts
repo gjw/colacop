@@ -3,6 +3,8 @@ import { promises as fs } from "node:fs";
 import { createDb, createPool } from "../db/kysely.js";
 import type { Database } from "../db/schema.js";
 import { StubLabelProvider } from "../core/providers/stub.js";
+import { GeminiLabelProvider } from "../core/providers/gemini.js";
+import type { LabelProvider } from "../core/providers/types.js";
 import { startWatcher } from "./watcher.js";
 
 async function main(): Promise<void> {
@@ -15,7 +17,18 @@ async function main(): Promise<void> {
 
   const pool = createPool(databaseUrl);
   const db = createDb<Database>(pool);
-  const provider = new StubLabelProvider();
+
+  const geminiApiKey = process.env["GEMINI_API_KEY"];
+  let provider: LabelProvider;
+  if (geminiApiKey !== undefined && geminiApiKey !== "") {
+    provider = new GeminiLabelProvider({ apiKey: geminiApiKey });
+    console.log("[worker] provider: GeminiLabelProvider");
+  } else {
+    provider = new StubLabelProvider();
+    console.log(
+      "[worker] provider: StubLabelProvider (GEMINI_API_KEY not set)",
+    );
+  }
 
   const watcher = startWatcher(db, provider, incomingDir);
   console.log(`[worker] watching ${incomingDir}`);

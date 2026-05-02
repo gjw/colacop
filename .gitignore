@@ -13,6 +13,7 @@ dist/
 
 # Env
 .env
+.envrc
 
 # Runtime data (keep dirs via .gitkeep)
 data/incoming/*
