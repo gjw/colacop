@@ -33,23 +33,29 @@ async function handleFile(
 
   await enqueue(stem, async () => {
     const existing = await getJobByStem(db, stem);
-    const transition = nextLifecycle(
-      existing
-        ? {
-            imagePath: existing.image_path,
-            applicationPath: existing.application_path,
-            lifecycle: existing.lifecycle,
-          }
-        : null,
-      { kind, filePath: absPath },
-    );
+    const current = existing
+      ? {
+          imagePath: existing.image_path,
+          applicationPath: existing.application_path,
+          lifecycle: existing.lifecycle,
+        }
+      : null;
+    const transition = nextLifecycle(current, { kind, filePath: absPath });
 
-    await upsertJob(db, {
-      stem,
-      imagePath: transition.imagePath,
-      applicationPath: transition.applicationPath,
-      lifecycle: transition.lifecycle,
-    });
+    const isNoop =
+      current !== null &&
+      transition.imagePath === current.imagePath &&
+      transition.applicationPath === current.applicationPath &&
+      transition.lifecycle === current.lifecycle;
+
+    if (!isNoop) {
+      await upsertJob(db, {
+        stem,
+        imagePath: transition.imagePath,
+        applicationPath: transition.applicationPath,
+        lifecycle: transition.lifecycle,
+      });
+    }
 
     if (transition.lifecycle === "queued") {
       await processStem(db, provider, stem);

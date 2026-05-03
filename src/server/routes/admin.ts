@@ -28,6 +28,7 @@ export function createAdminRouter(
       try {
         const entries = await fs.readdir(root);
         for (const name of entries) {
+          if (name.startsWith(".")) continue;
           const abs = path.join(root, name);
           const stat = await fs.stat(abs);
           if (stat.isFile()) {
