@@ -5,12 +5,12 @@
     "confidenceRaw": 0.95
   },
   "classType": {
-    "value": "IMPORTED LIQUEUR",
+    "value": "LIQUEUR",
     "confidence": "hi",
     "confidenceRaw": 0.95
   },
   "alcoholContent": {
-    "value": "40% alc./vol.",
+    "value": "40% alc./vol. (80 proof)",
     "confidence": "hi",
     "confidenceRaw": 0.95
   },
@@ -30,7 +30,7 @@
     "confidenceRaw": 0.95
   },
   "governmentWarning": {
-    "value": "GOVERNMENT WARNING: (1) ACCORDING TO THE SURGEON GENERAL, WOMEN SHOULD NOT DRINK ALCOHOLIC BEVERAGES DURING PREGNANCY BECAUSE OF THE RISK OF BIRTH DEFECTS. (2) CONSUMPTION OF ALCOHOLIC BEVERAGES IMPAIRS YOUR ABILITY TO DRIVE A CAR OR OPERATE MACHINERY, AND MAY CAUSE HEALTH PROBLEMS.",
+    "value": "GOVERNMENT WARNING: (1) ACCORDING TO THE SURGEON GENERAL, WOMEN SHOULD NOT DRINK ALCOHOLIC BEVERAGES DURING PREGNANCY BECAUSE OF THE RISK OF BIRTH DEFECTS. (2) CON- SUMPTION OF ALCOHOLIC BEVERAGES IMPAIRS YOUR ABILITY TO DRIVE A CAR OR OPERATE MACHINERY, AND MAY CAUSE HEALTH PROBLEMS.",
     "confidence": "hi",
     "confidenceRaw": 0.95
   },

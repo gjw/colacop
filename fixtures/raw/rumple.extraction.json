@@ -10,12 +10,12 @@
     "confidenceRaw": 0.95
   },
   "alcoholContent": {
-    "value": "50% ALC/VOL",
+    "value": "50% ALC/VOL (100 PROOF)",
     "confidence": "hi",
     "confidenceRaw": 0.95
   },
   "netContents": {
-    "value": "750 ML",
+    "value": "CONTENT 750 ML",
     "confidence": "hi",
     "confidenceRaw": 0.95
   },
@@ -30,12 +30,12 @@
     "confidenceRaw": 0.95
   },
   "governmentWarning": {
-    "value": "GOVERNMENT WARNING: (1)ACCORDING TO THE SURGEON GENERAL, WOMEN SHOULD NOT DRINK ALCOHOLIC BEVERAGES DURING PREGNANCY BECAUSE OF THE RISK OF BIRTH DEFECTS. (2)CONSUMPTION OF ALCOHOLIC BEVERAGES IMPAIRS YOUR ABILITY TO DRIVE A CAR OR OPERATE MACHINERY, AND MAY CAUSE HEALTH PROBLEMS.",
+    "value": "GOVERNMENT WARNING: (1) ACCORDING TO THE SURGEON GENERAL, WOMEN SHOULD NOT DRINK ALCOHOLIC BEVERAGES DURING PREGNANCY BECAUSE OF THE RISK OF BIRTH DEFECTS. (2) CONSUMPTION OF ALCOHOLIC BEVERAGES IMPAIRS YOUR ABILITY TO DRIVE A CAR OR OPERATE MACHINERY, AND MAY CAUSE HEALTH PROBLEMS.",
     "confidence": "hi",
     "confidenceRaw": 0.95
   },
   "countryOfOrigin": {
-    "value": "USA",
+    "value": "PRODUCT OF THE USA",
     "confidence": "hi",
     "confidenceRaw": 0.95
   }

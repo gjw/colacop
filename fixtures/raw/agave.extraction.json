@@ -1,6 +1,6 @@
 {
   "brandName": {
-    "value": "ESPOLON",
+    "value": "EL ESPOLON",
     "confidence": "hi",
     "confidenceRaw": 0.95
   },
@@ -10,9 +10,9 @@
     "confidenceRaw": 0.7
   },
   "alcoholContent": {
-    "value": "100% PURO AGAVE",
-    "confidence": "hi",
-    "confidenceRaw": 0.95
+    "value": "",
+    "confidence": "low",
+    "confidenceRaw": null
   },
   "netContents": {
     "value": "",
@@ -26,8 +26,8 @@
   },
   "producerAddress": {
     "value": "CAMINO REAL ATOTONILCO NO. 1081, COL. LA TRINIDAD, SAN IGNACIO CERRO GORDO, JALISCO, MEXICO, C.P. 47190",
-    "confidence": "hi",
-    "confidenceRaw": 0.95
+    "confidence": "med",
+    "confidenceRaw": 0.7
   },
   "governmentWarning": {
     "value": "GOVERNMENT WARNING: (1) ACCORDING TO THE SURGEON GENERAL, WOMEN SHOULD NOT DRINK ALCOHOLIC BEVERAGES DURING PREGNANCY BECAUSE OF THE RISK OF BIRTH DEFECTS. (2) CONSUMPTION OF ALCOHOLIC BEVERAGES IMPAIRS YOUR ABILITY TO DRIVE A CAR OR OPERATE MACHINERY, AND MAY CAUSE HEALTH PROBLEMS.",

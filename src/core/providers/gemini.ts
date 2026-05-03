@@ -11,7 +11,7 @@ import {
 } from "../schemas.js";
 
 const PROMPT =
-  "This image shows the front and/or back panels of an alcohol bottle label, possibly as a side-by-side or stacked composite of two panels. Extract each listed field as it appears on the label. Return null for any field not visible in the image. Do not hallucinate or infer missing values from training data — if the back panel is not visible, the government warning field must be null. For each field, return extraction_confidence: low (blurry, partial, glare-obscured, hard to read), med (readable but stylized or low-contrast), or hi (clean print, unambiguous).";
+  "This image shows the front and/or back panels of an alcohol bottle label, possibly as a side-by-side or stacked composite of two panels. Extract each listed field as it appears on the label, verbatim. Preserve every token exactly as printed — do not drop, abbreviate, expand, or normalize any words. In particular, for alcoholContent, if the label says 'ALC. X% BY VOL.' or 'Alcohol X% by volume', return the full string including the 'ALC.'/'Alcohol' token; never return just 'X% BY VOL.' Return null for any field not visible in the image. Do not hallucinate or infer missing values from training data — if the back panel is not visible, the government warning field must be null. For each field, return extraction_confidence: low (blurry, partial, glare-obscured, hard to read), med (readable but stylized or low-contrast), or hi (clean print, unambiguous).";
 
 const DEFAULT_MODEL = "gemini-3.1-pro-preview";
 
