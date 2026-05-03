@@ -75,8 +75,8 @@ Real label extraction requires `GEMINI_API_KEY` in your environment; without it 
 For reviewers who care about the deploy story:
 
 ```sh
-ssh root@linode43393.foramerica.dev
-cd /opt/colacop
+ssh root@colacop.foramerica.dev
+cd ~/colacop
 git pull
 npm ci
 npm run migrate
