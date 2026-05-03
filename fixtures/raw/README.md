@@ -1,6 +1,6 @@
 # fixtures/raw
 
-Workshop directory. Holds the raw bottle photos shot directly from a phone. Gitignored — the processed composites in `fixtures/labels/` are the committed deliverables.
+Workshop directory. Holds the raw bottle photos shot directly from a phone. Gitignored — the processed composites in `fixtures/pairs/` are the committed deliverables.
 
 ## Source files → which bottle / which side
 
@@ -23,7 +23,7 @@ Filenames are Pixel timestamps. The mapping below was established by Chair on 20
 
 ## Rebuild composites
 
-The composites in `fixtures/labels/` are produced by the following ImageMagick commands. Front panel on the left, back panel on the right, joined horizontally with `+append`.
+The composites in `fixtures/pairs/` are produced by the following ImageMagick commands. Front panel on the left, back panel on the right, joined horizontally with `+append`.
 
 The 2026-05-01 batch (cointreau, agave, rumble) uses 1600px height at quality 82 — each composite lands under 600KB. The 2026-05-02 batch (fireball, shinok, rumple) uses 2200px height at quality 88 — each composite lands around 1MB.
 
@@ -33,32 +33,32 @@ cd fixtures/raw
 magick \
   \( PXL_20260501_204014544.jpg -resize 'x1600' \) \
   \( PXL_20260501_204025507.jpg -resize 'x1600' \) \
-  +append -quality 82 ../labels/cointreau.jpg
+  +append -quality 82 ../pairs/cointreau.jpg
 
 magick \
   \( PXL_20260501_204043157.jpg -resize 'x1600' \) \
   \( PXL_20260501_204059122.MP.jpg -resize 'x1600' \) \
-  +append -quality 82 ../labels/agave.jpg
+  +append -quality 82 ../pairs/agave.jpg
 
 magick \
   \( PXL_20260501_204121155.jpg -rotate -90 -resize 'x1600' \) \
   \( PXL_20260501_204129507.MP.jpg -rotate -90 -resize 'x1600' \) \
-  +append -quality 82 ../labels/rumble.jpg
+  +append -quality 82 ../pairs/rumble.jpg
 
 magick \
   \( more-photos/PXL_20260502_172636803.jpg -resize 'x2200' \) \
   \( more-photos/PXL_20260502_172643647.MP.jpg -resize 'x2200' \) \
-  +append -quality 88 ../labels/fireball.jpg
+  +append -quality 88 ../pairs/fireball.jpg
 
 magick \
   \( more-photos/PXL_20260502_172651930.jpg -resize 'x2200' \) \
   \( more-photos/PXL_20260502_172659773.MP.jpg -resize 'x2200' \) \
-  +append -quality 88 ../labels/shinok.jpg
+  +append -quality 88 ../pairs/shinok.jpg
 
 magick \
   \( more-photos/PXL_20260502_172717134.jpg -resize 'x2200' \) \
   \( more-photos/PXL_20260502_172724162.MP.jpg -resize 'x2200' \) \
-  +append -quality 88 ../labels/rumple.jpg
+  +append -quality 88 ../pairs/rumple.jpg
 ```
 
 ImageMagick's `-rotate -90` is 90° counter-clockwise (positive degrees rotate clockwise in IM convention).

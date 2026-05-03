@@ -8,11 +8,11 @@ async function main(): Promise<void> {
     throw new Error("GEMINI_API_KEY not set");
   }
 
-  const labelsDir = path.resolve("fixtures/labels");
+  const pairsDir = path.resolve("fixtures/pairs");
   const outDir = path.resolve("fixtures/raw");
   await fs.mkdir(outDir, { recursive: true });
 
-  const entries = await fs.readdir(labelsDir);
+  const entries = await fs.readdir(pairsDir);
   const stems = entries
     .filter((f) => /\.(jpe?g|png|webp)$/i.test(f))
     .map((f) => ({ stem: path.basename(f, path.extname(f)), file: f }))
@@ -22,7 +22,7 @@ async function main(): Promise<void> {
 
   const summary: Array<{ stem: string; alcoholContent: string }> = [];
   for (const { stem, file } of stems) {
-    const imagePath = path.join(labelsDir, file);
+    const imagePath = path.join(pairsDir, file);
     console.log(`[capture] ${stem}: starting`);
     const extracted = await provider.analyzeLabel(imagePath);
     const outPath = path.join(outDir, `${stem}.extraction.json`);
