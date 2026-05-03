@@ -18,6 +18,9 @@ async function main(): Promise<void> {
   const incomingDir = path.resolve(
     process.env["INCOMING_DIR"] ?? "./data/incoming",
   );
+  const fixturesDir = path.resolve(
+    process.env["FIXTURES_DIR"] ?? "./fixtures/pairs",
+  );
   const webDist = path.resolve("dist/web");
 
   const pool = createPool(databaseUrl);
@@ -29,6 +32,8 @@ async function main(): Promise<void> {
   app.use("/api/jobs", createJobsRouter(db));
   app.use("/api/upload", createUploadRouter(incomingDir));
   app.use("/api/files", createFilesRouter(incomingDir));
+
+  app.use("/fixtures", express.static(fixturesDir));
 
   app.use(express.static(webDist));
   app.use((req, res, next) => {

@@ -80,11 +80,14 @@ cd ~/colacop
 git pull
 npm ci
 npm run migrate
+npm run seed:fixtures   # idempotent — copies fixtures/pairs/ into data/incoming/
 npm run build
 pm2 reload ecosystem.config.cjs
 ```
 
 This is intentionally manual rather than CI/CD-driven; for a 3-day prototype the iteration speed matters more than the deploy ceremony.
+
+The seed step pre-populates the demo queue with the 6 committed fixture pairs so reviewers see a non-empty queue on first page load. It is idempotent (skips files already present in `data/incoming/`); combined with the worker's restart-idempotency check, repeating the deploy does not re-run Gemini against already-processed pairs.
 
 ## Assumptions and limitations
 

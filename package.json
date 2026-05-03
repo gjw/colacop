@@ -9,6 +9,7 @@
   "scripts": {
     "typecheck": "tsc --noEmit && tsc --noEmit -p src/web/tsconfig.json",
     "migrate": "tsx scripts/migrate.ts",
+    "seed:fixtures": "tsx scripts/seed-fixtures.ts",
     "lint": "eslint .",
     "test": "vitest run",
     "dev:server": "tsx watch src/server/index.ts",
