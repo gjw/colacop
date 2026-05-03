@@ -10,11 +10,22 @@ export interface JobRow {
   id: number;
   stem: string;
   image_path: string | null;
+  image_url: string | null;
   application_path: string | null;
   lifecycle: Lifecycle;
   failure_reason: string | null;
   created_at: string;
   updated_at: string;
+}
+
+export interface ApplicationData {
+  brandName: string;
+  classType: string;
+  alcoholContent?: number;
+  netContents: string;
+  producerName: string;
+  producerAddress: string;
+  countryOfOrigin?: string;
 }
 
 export interface Layer1Row {
@@ -39,6 +50,7 @@ export interface JobDetail {
   job: JobRow;
   layer1: Layer1Row[];
   layer2: Layer2Row[];
+  application: ApplicationData | null;
 }
 
 export async function listJobs(lifecycle?: Lifecycle): Promise<JobRow[]> {

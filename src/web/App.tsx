@@ -1,5 +1,6 @@
 import { useEffect, useState } from "react";
 import {
+  type ApplicationData,
   type JobDetail,
   type JobRow,
   type Lifecycle,
@@ -79,6 +80,63 @@ function JobList({
   );
 }
 
+function ApplicationPanel({
+  application,
+}: {
+  application: ApplicationData | null;
+}): JSX.Element {
+  if (application === null) {
+    return <div className="empty">No application data linked.</div>;
+  }
+  const rows: Array<[string, string]> = [
+    ["Brand", application.brandName],
+    ["Class/type", application.classType],
+    [
+      "ABV",
+      application.alcoholContent !== undefined
+        ? `${application.alcoholContent}%`
+        : "—",
+    ],
+    ["Net contents", application.netContents],
+    ["Producer", application.producerName],
+    ["Address", application.producerAddress],
+    ["Country", application.countryOfOrigin ?? "—"],
+  ];
+  return (
+    <dl className="app-panel">
+      {rows.map(([k, v]) => (
+        <div key={k} className="app-row">
+          <dt>{k}</dt>
+          <dd>{v}</dd>
+        </div>
+      ))}
+    </dl>
+  );
+}
+
+function LabelImagePanel({
+  url,
+  stem,
+}: {
+  url: string | null;
+  stem: string;
+}): JSX.Element {
+  if (url === null) {
+    return <div className="image-empty empty">No label image on file.</div>;
+  }
+  return (
+    <a
+      className="image-link"
+      href={url}
+      target="_blank"
+      rel="noopener noreferrer"
+      title="Click to open full-size"
+    >
+      <img className="label-image" src={url} alt={`Label for ${stem}`} />
+    </a>
+  );
+}
+
 function JobDetailView({
   detail,
   onBack,
@@ -86,7 +144,7 @@ function JobDetailView({
   detail: JobDetail;
   onBack: () => void;
 }): JSX.Element {
-  const { job, layer1, layer2 } = detail;
+  const { job, layer1, layer2, application } = detail;
   const rollup = rollupVerdict(detail);
   return (
     <div>
@@ -113,6 +171,13 @@ function JobDetailView({
             {job.failure_reason}
           </span>
         )}
+      </div>
+
+      <div className="detail-section">
+        <div className="label-app-grid">
+          <LabelImagePanel url={job.image_url} stem={job.stem} />
+          <ApplicationPanel application={application} />
+        </div>
       </div>
 
       <div className="detail-section">

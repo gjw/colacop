@@ -150,6 +150,55 @@ tr:hover td { background: rgba(127,127,127,0.05); cursor: pointer; }
 .field-row .name { font-weight: 600; }
 .field-row .msg { color: var(--muted); font-size: 13px; }
 
+.label-app-grid {
+  display: grid;
+  grid-template-columns: 1fr 320px;
+  gap: 16px;
+  align-items: start;
+}
+.image-link {
+  display: block;
+  border: 1px solid var(--border);
+  border-radius: 6px;
+  overflow: hidden;
+  background: rgba(127,127,127,0.04);
+}
+.image-link:hover { border-color: var(--accent); }
+.label-image {
+  display: block;
+  width: 100%;
+  max-height: 380px;
+  object-fit: contain;
+}
+.image-empty {
+  border: 1px dashed var(--border);
+  border-radius: 6px;
+  padding: 32px;
+}
+.app-panel {
+  margin: 0;
+  padding: 12px 14px;
+  border: 1px solid var(--border);
+  border-radius: 6px;
+  max-height: 380px;
+  overflow-y: auto;
+  font-size: 13px;
+}
+.app-panel .app-row {
+  display: grid;
+  grid-template-columns: 90px 1fr;
+  gap: 8px;
+  padding: 4px 0;
+  border-bottom: 1px solid var(--border);
+}
+.app-panel .app-row:last-child { border-bottom: none; }
+.app-panel dt { color: var(--muted); font-size: 12px; }
+.app-panel dd { margin: 0; word-break: break-word; }
+
+@media (max-width: 720px) {
+  .label-app-grid { grid-template-columns: 1fr; }
+}
+
 .upload-form {
   margin-top: 24px;
   padding: 16px;
