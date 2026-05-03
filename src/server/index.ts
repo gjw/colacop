@@ -7,6 +7,7 @@ try {
 import express from "express";
 import { createDb, createPool } from "../db/kysely.js";
 import type { Database } from "../db/schema.js";
+import { createAdminRouter } from "./routes/admin.js";
 import { createFilesRouter } from "./routes/files.js";
 import { createJobsRouter } from "./routes/jobs.js";
 import { createUploadRouter } from "./routes/upload.js";
@@ -32,6 +33,7 @@ async function main(): Promise<void> {
   app.use("/api/jobs", createJobsRouter(db));
   app.use("/api/upload", createUploadRouter(incomingDir));
   app.use("/api/files", createFilesRouter(incomingDir));
+  app.use("/api/admin", createAdminRouter(db, incomingDir));
 
   app.use("/fixtures", express.static(fixturesDir));
 

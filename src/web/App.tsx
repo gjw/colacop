@@ -6,8 +6,18 @@ import {
   type Lifecycle,
   getJob,
   listJobs,
+  resetDemo,
   uploadFiles,
 } from "./apiClient";
+
+const FIXTURE_STEMS = [
+  "agave",
+  "cointreau",
+  "fireball",
+  "rumble",
+  "rumple",
+  "shinok",
+] as const;
 
 const FILTERS: Array<{ key: Lifecycle | "all"; label: string }> = [
   { key: "all", label: "All" },
@@ -117,7 +127,12 @@ function ApplicationPanel({
   application: ApplicationData | null;
 }): JSX.Element {
   if (application === null) {
-    return <div className="empty">No application data linked.</div>;
+    return (
+      <div className="app-panel-wrap">
+        <div className="app-panel-header">From application JSON</div>
+        <div className="empty">No application data linked.</div>
+      </div>
+    );
   }
   const rows: Array<[string, string]> = [
     ["Brand", application.brandName],
@@ -134,15 +149,22 @@ function ApplicationPanel({
     ["Country", application.countryOfOrigin ?? "—"],
   ];
   return (
-    <dl className="app-panel">
-      {rows.map(([k, v]) => (
-        <div key={k} className="app-row">
-          <dt>{k}</dt>
-          <dd>{v}</dd>
-        </div>
-      ))}
-    </dl>
+    <div className="app-panel-wrap">
+      <div className="app-panel-header">From application JSON</div>
+      <dl className="app-panel">
+        {rows.map(([k, v]) => (
+          <div key={k} className="app-row">
+            <dt>{k}</dt>
+            <dd>{v}</dd>
+          </div>
+        ))}
+      </dl>
+    </div>
   );
+}
+
+function Spinner(): JSX.Element {
+  return <span className="spinner" aria-label="processing" role="status" />;
 }
 
 function LabelImagePanel({
@@ -195,8 +217,9 @@ function JobDetailView({
           </a>
         </div>
       </header>
-      <div>
+      <div className="lifecycle-row">
         <LifecycleBadge value={job.lifecycle} />
+        {job.lifecycle === "processing" && <Spinner />}
         {job.failure_reason && (
           <span style={{ marginLeft: 12, color: "var(--fail)" }}>
             {job.failure_reason}
@@ -294,6 +317,31 @@ function UploadForm({ onUploaded }: { onUploaded: () => void }): JSX.Element {
 
   return (
     <form className="upload-form" onSubmit={submit}>
+      <h2 className="section-heading">Upload your own</h2>
+      <div className="upload-help">
+        <p>
+          In a real TTB filing, a producer submits a label image alongside an
+          application form declaring the label's claimed values (brand,
+          class/type, ABV, producer, etc.). This prototype represents that
+          application as a JSON file — see the fixtures panel above for the
+          expected shape.
+        </p>
+        <ul>
+          <li>
+            <strong>Both files</strong> → Layer 1 (label vs TTB regulation) and
+            Layer 2 (label vs application) both run.
+          </li>
+          <li>
+            <strong>Image only</strong> → Layer 1 runs; Layer 2 waits in
+            <code> awaiting_application </code>
+            until a JSON arrives.
+          </li>
+          <li>
+            <strong>JSON only</strong> → nothing runs until the label image
+            arrives.
+          </li>
+        </ul>
+      </div>
       <label>
         Label image (.jpg, .png, .webp){" "}
         <input
@@ -315,6 +363,124 @@ function UploadForm({ onUploaded }: { onUploaded: () => void }): JSX.Element {
       </button>
       {feedback && <div className="feedback">{feedback}</div>}
     </form>
+  );
+}
+
+function ConfirmModal({
+  children,
+  onConfirm,
+  onCancel,
+  busy,
+  confirmLabel,
+}: {
+  children: React.ReactNode;
+  onConfirm: () => void;
+  onCancel: () => void;
+  busy: boolean;
+  confirmLabel: string;
+}): JSX.Element {
+  return (
+    <div className="modal-overlay" onClick={onCancel}>
+      <div className="modal" onClick={(e) => e.stopPropagation()}>
+        <div className="modal-body">{children}</div>
+        <div className="modal-actions">
+          <button type="button" onClick={onCancel} disabled={busy}>
+            Cancel
+          </button>
+          <button
+            type="button"
+            className="danger"
+            onClick={onConfirm}
+            disabled={busy}
+          >
+            {busy ? "Working..." : confirmLabel}
+          </button>
+        </div>
+      </div>
+    </div>
+  );
+}
+
+function FixturesPanel({
+  onResetComplete,
+}: {
+  onResetComplete: () => void;
+}): JSX.Element {
+  const [confirmOpen, setConfirmOpen] = useState(false);
+  const [resetting, setResetting] = useState(false);
+  const [feedback, setFeedback] = useState<string>("");
+
+  async function handleReset(): Promise<void> {
+    setResetting(true);
+    try {
+      const result = await resetDemo();
+      setFeedback(
+        `Reset: cleared ${result.jobsCleared} job(s), removed ${result.filesRemoved} file(s).`,
+      );
+      setConfirmOpen(false);
+      onResetComplete();
+    } catch (err) {
+      setFeedback(
+        `Reset failed: ${err instanceof Error ? err.message : String(err)}`,
+      );
+    } finally {
+      setResetting(false);
+    }
+  }
+
+  return (
+    <section className="fixtures-panel">
+      <h2 className="section-heading">Sample fixtures</h2>
+      <p className="fixtures-intro">
+        Six committed pairs. Download an image + JSON together, then upload them
+        below to exercise the full pipeline. Image-only and JSON-only uploads
+        are also valid — see the upload notes.
+      </p>
+      <ul className="fixtures-list">
+        {FIXTURE_STEMS.map((stem) => (
+          <li key={stem} className="fixture-row">
+            <span className="fixture-stem">{stem}</span>
+            <a href={`/fixtures/${stem}.jpg`} download>
+              {stem}.jpg
+            </a>
+            <a href={`/fixtures/${stem}.json`} download>
+              {stem}.json
+            </a>
+          </li>
+        ))}
+      </ul>
+      <div className="reset-row">
+        <button
+          type="button"
+          className="reset-button"
+          onClick={() => setConfirmOpen(true)}
+        >
+          Reset demo
+        </button>
+        {feedback && <span className="reset-feedback">{feedback}</span>}
+      </div>
+      {confirmOpen && (
+        <ConfirmModal
+          onConfirm={handleReset}
+          onCancel={() => setConfirmOpen(false)}
+          busy={resetting}
+          confirmLabel="Reset demo"
+        >
+          <p>
+            <strong>Reset the demo?</strong>
+          </p>
+          <p>
+            This clears all jobs, layer-1 results, and layer-2 results from the
+            database, and removes every file in <code>data/incoming/</code>.
+          </p>
+          <p>
+            It does <strong>not</strong> repopulate the demo fixtures. After
+            reset, use the download links above to grab a pair and upload it via
+            the form below.
+          </p>
+        </ConfirmModal>
+      )}
+    </section>
   );
 }
 
@@ -375,6 +541,12 @@ export function App(): JSX.Element {
         ))}
       </div>
       <JobList jobs={jobs} onSelect={setSelected} />
+      <FixturesPanel
+        onResetComplete={() => {
+          setSelected(null);
+          void refresh();
+        }}
+      />
       <UploadForm onUploaded={() => void refresh()} />
     </div>
   );
