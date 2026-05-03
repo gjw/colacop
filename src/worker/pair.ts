@@ -22,10 +22,27 @@ export interface PairTransition {
   lifecycle: Lifecycle;
 }
 
+const RESTART_PRESERVE_LIFECYCLES = new Set<Lifecycle>([
+  "processed",
+  "processing",
+  "awaiting_application",
+  "awaiting_label",
+]);
+
 export function nextLifecycle(
   current: PairTransition | null,
   incoming: { kind: FileKind; filePath: string },
 ): PairTransition {
+  if (current !== null && RESTART_PRESERVE_LIFECYCLES.has(current.lifecycle)) {
+    const incomingMatches =
+      (incoming.kind === "image" && current.imagePath === incoming.filePath) ||
+      (incoming.kind === "json" &&
+        current.applicationPath === incoming.filePath);
+    if (incomingMatches) {
+      return current;
+    }
+  }
+
   const imagePath =
     incoming.kind === "image" ? incoming.filePath : (current?.imagePath ?? null);
   const applicationPath =
