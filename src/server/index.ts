@@ -2,6 +2,7 @@ import path from "node:path";
 import express from "express";
 import { createDb, createPool } from "../db/kysely.js";
 import type { Database } from "../db/schema.js";
+import { createFilesRouter } from "./routes/files.js";
 import { createJobsRouter } from "./routes/jobs.js";
 import { createUploadRouter } from "./routes/upload.js";
 
@@ -22,6 +23,7 @@ async function main(): Promise<void> {
 
   app.use("/api/jobs", createJobsRouter(db));
   app.use("/api/upload", createUploadRouter(incomingDir));
+  app.use("/api/files", createFilesRouter(incomingDir));
 
   app.use(express.static(webDist));
   app.use((req, res, next) => {

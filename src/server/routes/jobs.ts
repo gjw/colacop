@@ -1,6 +1,32 @@
+import path from "node:path";
+import { promises as fs } from "node:fs";
 import { Router } from "express";
-import type { Kysely } from "kysely";
-import type { Database } from "../../db/schema.js";
+import type { Kysely, Selectable } from "kysely";
+import type { Database, JobsTable } from "../../db/schema.js";
+import { applicationDataSchema, type ApplicationData } from "../../core/schemas.js";
+
+type JobRow = Selectable<JobsTable>;
+
+function imageUrl(imagePath: string | null): string | null {
+  if (imagePath === null) return null;
+  return `/api/files/${path.basename(imagePath)}`;
+}
+
+function decorate(job: JobRow): JobRow & { image_url: string | null } {
+  return { ...job, image_url: imageUrl(job.image_path) };
+}
+
+async function loadApplication(
+  applicationPath: string,
+): Promise<ApplicationData | null> {
+  try {
+    const raw = await fs.readFile(applicationPath, "utf-8");
+    const parsed: unknown = JSON.parse(raw);
+    return applicationDataSchema.parse(parsed);
+  } catch {
+    return null;
+  }
+}
 
 export function createJobsRouter(db: Kysely<Database>): Router {
   const router = Router();
@@ -16,7 +42,7 @@ export function createJobsRouter(db: Kysely<Database>): Router {
       query = query.where("lifecycle", "=", lifecycle as never);
     }
     const rows = await query.execute();
-    res.json({ jobs: rows });
+    res.json({ jobs: rows.map(decorate) });
   });
 
   router.get("/:id", async (req, res) => {
@@ -47,7 +73,11 @@ export function createJobsRouter(db: Kysely<Database>): Router {
       .where("job_id", "=", id)
       .orderBy("id")
       .execute();
-    res.json({ job, layer1, layer2 });
+    const application =
+      job.application_path !== null
+        ? await loadApplication(job.application_path)
+        : null;
+    res.json({ job: decorate(job), layer1, layer2, application });
   });
 
   return router;
