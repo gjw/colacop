@@ -317,14 +317,15 @@ function UploadForm({ onUploaded }: { onUploaded: () => void }): JSX.Element {
 
   return (
     <form className="upload-form" onSubmit={submit}>
-      <h2 className="section-heading">Upload your own</h2>
+      <h2 className="section-heading">Upload your own pair</h2>
       <div className="upload-help">
         <p>
           In a real TTB filing, a producer submits a label image alongside an
           application form declaring the label's claimed values (brand,
           class/type, ABV, producer, etc.). This prototype represents that
-          application as a JSON file — see the fixtures panel above for the
-          expected shape.
+          application as a JSON file — download any pair from{" "}
+          <strong>Sample fixtures</strong> above to see the expected JSON
+          shape.
         </p>
         <ul>
           <li>

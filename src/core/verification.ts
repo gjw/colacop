@@ -45,6 +45,17 @@ export function normalizeBrand(text: string): string {
     .trim();
 }
 
+// Strip line-break hyphens ("PREG- NANCY" → "PREGNANCY") and collapse
+// whitespace. The canonical warning text has no hyphens, so removing them
+// only kills extraction artifacts, not real characters.
+function normalizeWarning(text: string): string {
+  return text
+    .replace(/\s*-+\s*/g, "")
+    .replace(/\s+/g, " ")
+    .trim()
+    .toLowerCase();
+}
+
 function checkWarning(field: ExtractedField): Layer1FieldResult {
   const text = field.value;
   if (text === REGULATION_WARNING) {
@@ -59,12 +70,12 @@ function checkWarning(field: ExtractedField): Layer1FieldResult {
       "Must begin with 'GOVERNMENT WARNING:' in all caps (27 CFR 16.22).",
     );
   }
-  if (text.toLowerCase().trim() === REGULATION_WARNING.toLowerCase().trim()) {
+  if (normalizeWarning(text) === normalizeWarning(REGULATION_WARNING)) {
     return l1(
       "governmentWarning",
       field,
-      "needs_review",
-      "Wording matches but exact text differs in punctuation or whitespace.",
+      "pass",
+      "Wording matches required text; differs only in case, whitespace, or line-wrap hyphens.",
     );
   }
   return l1(
@@ -227,6 +238,7 @@ function compareString(
   fieldName: string,
   extracted: ExtractedField,
   application: string,
+  options?: { extractedContainingAppPasses?: boolean },
 ): Layer2FieldResult {
   const a = extracted.value.trim().toLowerCase();
   const b = application.trim().toLowerCase();
@@ -238,6 +250,25 @@ function compareString(
       extracted.value,
       application,
     );
+  }
+  // Verbatim Gemini output for some fields wraps the canonical app value
+  // in surrounding label text — "PRODUCT OF UKRAINE" contains "Ukraine",
+  // "CONTENT 750 ML" contains "750 mL". For fields where this is normal
+  // (netContents, countryOfOrigin), treat it as pass when the app value
+  // appears at a word boundary in the extracted text. The word boundary
+  // keeps "Ukraine" from matching inside "Ukrainian".
+  if (options?.extractedContainingAppPasses) {
+    const escaped = b.replace(/[.*+?^${}()|[\]\\]/g, "\\$&");
+    const boundary = new RegExp(`\\b${escaped}\\b`);
+    if (boundary.test(a)) {
+      return l2(
+        fieldName,
+        "pass",
+        `Label '${extracted.value}' contains the application value '${application}' verbatim.`,
+        extracted.value,
+        application,
+      );
+    }
   }
   if (a.includes(b) || b.includes(a)) {
     return l2(
@@ -295,7 +326,9 @@ export function runLayer2(
           extracted.alcoholContent.value,
           null,
         ),
-    compareString("netContents", extracted.netContents, application.netContents),
+    compareString("netContents", extracted.netContents, application.netContents, {
+      extractedContainingAppPasses: true,
+    }),
     compareString("producerName", extracted.producerName, application.producerName),
     compareString(
       "producerAddress",
@@ -329,6 +362,7 @@ export function runLayer2(
         "countryOfOrigin",
         extracted.countryOfOrigin,
         application.countryOfOrigin,
+        { extractedContainingAppPasses: true },
       ),
     );
   }

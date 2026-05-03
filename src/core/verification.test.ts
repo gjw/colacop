@@ -190,6 +190,82 @@ describe("runLayer2", () => {
   });
 });
 
+describe("runLayer1 — government warning hyphen tolerance (cc-0ue)", () => {
+  // Verbatim-extraction prompt preserves line-wrap hyphens like
+  // "PREG- NANCY" and "CON- SUMPTION". The wording is correct; the hyphens
+  // are mechanical OCR artifacts. They must not flip to fail.
+  it("passes when canonical text is split by line-wrap hyphens", () => {
+    const wrapped = REGULATION_WARNING.replace("pregnancy", "preg- nancy").replace(
+      "Consumption",
+      "Con- sumption",
+    );
+    const r = runLayer1({ ...baseExtracted, governmentWarning: hi(wrapped) });
+    const w = r.find((x) => x.fieldName === "governmentWarning");
+    expect(w?.verdict).toBe("pass");
+  });
+
+  it("still fails when wording itself differs from CFR text", () => {
+    const r = runLayer1({
+      ...baseExtracted,
+      governmentWarning: hi("GOVERNMENT WARNING: Drinking is bad for you."),
+    });
+    const w = r.find((x) => x.fieldName === "governmentWarning");
+    expect(w?.verdict).toBe("fail");
+  });
+});
+
+describe("runLayer2 — extracted-contains-app pass (cc-0ue)", () => {
+  // Verbatim Gemini output for netContents and countryOfOrigin frequently
+  // wraps the canonical value in label phrasing ("CONTENT 750 ML",
+  // "PRODUCT OF UKRAINE"). These should pass, not flag for review.
+  it("passes netContents 'CONTENT 750 ML' against app '750 mL'", () => {
+    const r = runLayer2(
+      { ...baseExtracted, netContents: hi("CONTENT 750 ML") },
+      baseApp,
+    );
+    const n = r.find((x) => x.fieldName === "netContents");
+    expect(n?.verdict).toBe("pass");
+  });
+
+  it("passes countryOfOrigin 'PRODUCT OF THE USA' against app 'USA'", () => {
+    const r = runLayer2(
+      { ...baseExtracted, countryOfOrigin: hi("PRODUCT OF THE USA") },
+      { ...baseApp, countryOfOrigin: "USA" },
+    );
+    const c = r.find((x) => x.fieldName === "countryOfOrigin");
+    expect(c?.verdict).toBe("pass");
+  });
+
+  it("passes countryOfOrigin 'PRODUCT OF UKRAINE' against app 'Ukraine'", () => {
+    const r = runLayer2(
+      { ...baseExtracted, countryOfOrigin: hi("PRODUCT OF UKRAINE") },
+      { ...baseApp, countryOfOrigin: "Ukraine" },
+    );
+    const c = r.find((x) => x.fieldName === "countryOfOrigin");
+    expect(c?.verdict).toBe("pass");
+  });
+
+  it("does not pass on adjective-form substring (Ukrainian ≠ Ukraine)", () => {
+    const r = runLayer2(
+      { ...baseExtracted, countryOfOrigin: hi("PRODUCT OF UKRAINIAN ORIGIN") },
+      { ...baseApp, countryOfOrigin: "Ukraine" },
+    );
+    const c = r.find((x) => x.fieldName === "countryOfOrigin");
+    expect(c?.verdict).not.toBe("pass");
+  });
+
+  it("does not bleed into producerName (still needs_review on partial)", () => {
+    // producerName uses compareString without the option — partial overlap
+    // should remain needs_review, not auto-pass.
+    const r = runLayer2(
+      { ...baseExtracted, producerName: hi("Stone's Throw Vineyards LLC") },
+      baseApp,
+    );
+    const p = r.find((x) => x.fieldName === "producerName");
+    expect(p?.verdict).toBe("needs_review");
+  });
+});
+
 describe("runLayer2 — countryOfOrigin", () => {
   it("reports needs_application_data when application omits it (domestic)", () => {
     const r = runLayer2(baseExtracted, baseApp);
