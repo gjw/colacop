@@ -52,6 +52,10 @@ nodenv install
 # Install dependencies
 npm install
 
+# Configure env (DATABASE_URL, ports, GEMINI_API_KEY)
+cp .env.example .env
+# then edit .env — at minimum set GEMINI_API_KEY for real label extraction
+
 # Start Postgres
 docker compose up -d db
 

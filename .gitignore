@@ -4,8 +4,8 @@
 # bv (beads viewer) local config and caches
 .bv/
 
-# Claude Code local telemetry
-.claude/tracking/
+# Claude Code local state, telemetry, settings
+.claude/
 
 # Node / build
 node_modules/

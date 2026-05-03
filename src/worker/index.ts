@@ -1,5 +1,10 @@
 import path from "node:path";
 import { promises as fs } from "node:fs";
+try {
+  process.loadEnvFile();
+} catch {
+  // .env absent — rely on shell/PM2 env
+}
 import { createDb, createPool } from "../db/kysely.js";
 import type { Database } from "../db/schema.js";
 import { StubLabelProvider } from "../core/providers/stub.js";

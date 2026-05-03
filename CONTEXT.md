@@ -4,7 +4,7 @@
 
 - TTB AI alcohol-label verification take-home prototype.
 - External hard deadline ~2026-05-02 (3 days from 2026-04-29). Outcome drives a job opportunity.
-- Discovery already done: `discovery/sources/` (S-001..S-005), `discovery/facts.yaml` (F-001..F-043), `design/requirements.yaml` (REQ-001..010). `docs/handoff.md` is the prior continuity doc.
+- Discovery already done: `discovery/sources/` (S-001..S-007, including TTB regulatory sources S-006 government warning and S-007 mandatory label fields), `discovery/facts.yaml` (F-001..F-043), `design/requirements.yaml` (REQ-001..010). `docs/handoff.md` is the prior continuity doc.
 - Stack locked in `ARCHITECTURE.md`: Node 24 / TypeScript, React+Vite, Express, Zod, Postgres in Docker + Knex, Chokidar watcher, PM2/nginx VPS. Async ingestion → worker → results → review UI. Model/OCR provider behind a small interface.
 
 ## Constraints

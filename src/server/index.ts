@@ -1,4 +1,9 @@
 import path from "node:path";
+try {
+  process.loadEnvFile();
+} catch {
+  // .env absent — rely on shell/PM2 env
+}
 import express from "express";
 import { createDb, createPool } from "../db/kysely.js";
 import type { Database } from "../db/schema.js";

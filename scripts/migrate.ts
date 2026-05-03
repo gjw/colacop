@@ -1,6 +1,11 @@
 import { promises as fs } from "node:fs";
 import path from "node:path";
 import { fileURLToPath } from "node:url";
+try {
+  process.loadEnvFile();
+} catch {
+  // .env absent — rely on shell/PM2 env
+}
 import { FileMigrationProvider, Migrator } from "kysely";
 import { createDb, createPool } from "../src/db/kysely.js";
 
