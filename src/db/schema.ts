@@ -37,6 +37,7 @@ export interface Layer1ResultsTable {
   extraction_confidence: ExtractionConfidence;
   extraction_confidence_raw: number | null;
   message: string;
+  extracted_value: string | null;
   created_at: Generated<Date>;
 }
 
@@ -46,6 +47,8 @@ export interface Layer2ResultsTable {
   field_name: string;
   verdict: Layer2Verdict;
   message: string;
+  extracted_value: string | null;
+  application_value: string | null;
   created_at: Generated<Date>;
 }
 

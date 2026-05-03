@@ -53,12 +53,15 @@ export interface Layer1FieldResult {
   extractionConfidence: ExtractionConfidence;
   extractionConfidenceRaw: number | null;
   message: string;
+  extractedValue: string | null;
 }
 
 export interface Layer2FieldResult {
   fieldName: string;
   verdict: Layer2Verdict;
   message: string;
+  extractedValue: string | null;
+  applicationValue: string | null;
 }
 
 export interface VerificationResult {

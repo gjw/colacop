@@ -31,6 +31,37 @@ function VerdictBadge({ value }: { value: string }): JSX.Element {
   return <span className={`verdict ${value}`}>{value.replace(/_/g, " ")}</span>;
 }
 
+const TRUNCATE_LIMIT = 120;
+
+function TruncatedValue({ text }: { text: string }): JSX.Element {
+  const [expanded, setExpanded] = useState(false);
+  if (text.length <= TRUNCATE_LIMIT) {
+    return <span className="extracted-text">{text}</span>;
+  }
+  return (
+    <span className="extracted-text">
+      {expanded ? text : `${text.slice(0, TRUNCATE_LIMIT)}…`}{" "}
+      <button
+        type="button"
+        className="show-toggle"
+        onClick={() => setExpanded((v) => !v)}
+      >
+        {expanded ? "show less" : "show more"}
+      </button>
+    </span>
+  );
+}
+
+function ValueCell({ value }: { value: string | null }): JSX.Element {
+  if (value === null) {
+    return <span className="extracted-missing">(none)</span>;
+  }
+  if (value === "") {
+    return <span className="extracted-missing">""</span>;
+  }
+  return <TruncatedValue text={value} />;
+}
+
 function rollupVerdict(detail: JobDetail): string {
   const verdicts = [
     ...detail.layer1.map((r) => r.verdict),
@@ -194,7 +225,13 @@ function JobDetailView({
               <div>
                 <VerdictBadge value={r.verdict} />
               </div>
-              <div className="msg">{r.message}</div>
+              <div className="msg">
+                {r.message}
+                <div className="extracted-line">
+                  <span className="extracted-label">extracted:</span>{" "}
+                  <ValueCell value={r.extracted_value} />
+                </div>
+              </div>
             </div>
           ))
         )}
@@ -211,7 +248,16 @@ function JobDetailView({
               <div>
                 <VerdictBadge value={r.verdict} />
               </div>
-              <div className="msg">{r.message}</div>
+              <div className="msg">
+                {r.message}
+                <div className="extracted-line">
+                  <span className="extracted-label">extracted:</span>{" "}
+                  <ValueCell value={r.extracted_value} />
+                  {" · "}
+                  <span className="extracted-label">application:</span>{" "}
+                  <ValueCell value={r.application_value} />
+                </div>
+              </div>
             </div>
           ))
         )}

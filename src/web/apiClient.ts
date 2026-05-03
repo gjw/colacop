@@ -36,6 +36,7 @@ export interface Layer1Row {
   extraction_confidence: "low" | "med" | "hi";
   extraction_confidence_raw: number | null;
   message: string;
+  extracted_value: string | null;
 }
 
 export interface Layer2Row {
@@ -44,6 +45,8 @@ export interface Layer2Row {
   field_name: string;
   verdict: "pass" | "fail" | "needs_review" | "needs_application_data";
   message: string;
+  extracted_value: string | null;
+  application_value: string | null;
 }
 
 export interface JobDetail {

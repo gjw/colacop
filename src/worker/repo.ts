@@ -100,6 +100,7 @@ export async function persistLayer1(
         extraction_confidence: r.extractionConfidence,
         extraction_confidence_raw: r.extractionConfidenceRaw,
         message: r.message,
+        extracted_value: r.extractedValue,
       })),
     )
     .execute();
@@ -120,6 +121,8 @@ export async function persistLayer2(
         field_name: r.fieldName,
         verdict: r.verdict,
         message: r.message,
+        extracted_value: r.extractedValue,
+        application_value: r.applicationValue,
       })),
     )
     .execute();

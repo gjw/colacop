@@ -244,3 +244,65 @@ describe("verifyLabel integration", () => {
     expect(r.layer2.length).toBeGreaterThan(0);
   });
 });
+
+describe("extractedValue / applicationValue propagation", () => {
+  it("Layer 1 results carry the raw extracted string per field", () => {
+    const r = runLayer1({
+      ...baseExtracted,
+      alcoholContent: hi("ALC. 16.5% BY VOL."),
+    });
+    const abv = r.find((x) => x.fieldName === "alcoholContent");
+    expect(abv?.extractedValue).toBe("ALC. 16.5% BY VOL.");
+    const brand = r.find((x) => x.fieldName === "brandName");
+    expect(brand?.extractedValue).toBe("Stone's Throw");
+  });
+
+  it("Layer 1 carries the malformed extraction string verbatim on fail (cc-o1k)", () => {
+    const r = runLayer1({
+      ...baseExtracted,
+      alcoholContent: hi("really strong"),
+    });
+    const abv = r.find((x) => x.fieldName === "alcoholContent");
+    expect(abv?.verdict).toBe("fail");
+    expect(abv?.extractedValue).toBe("really strong");
+  });
+
+  it("Layer 2 carries both extracted and application values on a comparison", () => {
+    const r = runLayer2(baseExtracted, baseApp);
+    const brand = r.find((x) => x.fieldName === "brandName");
+    expect(brand?.extractedValue).toBe("Stone's Throw");
+    expect(brand?.applicationValue).toBe("Stone's Throw");
+  });
+
+  it("Layer 2 stores numeric application ABV as a string", () => {
+    const r = runLayer2(baseExtracted, baseApp);
+    const abv = r.find((x) => x.fieldName === "alcoholContent");
+    expect(abv?.extractedValue).toBe("13.5% alc/vol");
+    expect(abv?.applicationValue).toBe("13.5");
+  });
+
+  it("Layer 2 stores extracted with null application when application is null", () => {
+    const r = runLayer2(baseExtracted, null);
+    const brand = r.find((x) => x.fieldName === "brandName");
+    expect(brand?.extractedValue).toBe("Stone's Throw");
+    expect(brand?.applicationValue).toBe(null);
+  });
+
+  it("Layer 2 countryOfOrigin: null extracted when label has none, app has it", () => {
+    const r = runLayer2(baseExtracted, { ...baseApp, countryOfOrigin: "France" });
+    const c = r.find((x) => x.fieldName === "countryOfOrigin");
+    expect(c?.extractedValue).toBe(null);
+    expect(c?.applicationValue).toBe("France");
+  });
+
+  it("Layer 2 countryOfOrigin: extracted carried even when application omits it", () => {
+    const r = runLayer2(
+      { ...baseExtracted, countryOfOrigin: hi("Mexico") },
+      baseApp,
+    );
+    const c = r.find((x) => x.fieldName === "countryOfOrigin");
+    expect(c?.verdict).toBe("needs_application_data");
+    expect(c?.extractedValue).toBe("Mexico");
+    expect(c?.applicationValue).toBe(null);
+  });
+});
