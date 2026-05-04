@@ -5,7 +5,7 @@ Phases 1, 2, 4 can interleave. Phase 3 gated on phase 1. Phase 5 gates everythin
 
 ## Phase 0 — Grooming (decisions to make)
 
-- [ ] **G1.** cc-ky5 placement: empty-queue state vs upload widget subtitle vs footer. Pick one + write the exact copy.
+- [x] **G1.** cc-ky5 placed in upload-form help block; copy: "Running locally? Drop label/JSON pairs into `data/incoming/` — the watcher picks them up."
 - [x] **G2.** Two screenshots: queue + job detail. Saved to `docs/screenshots/`. Annotated with red rectangles + numbered callouts (≤3 per shot) if Skitch works out; plain otherwise.
 - [x] **G3.** Limitations inventory mapping → `notes/limitations-inventory.md` (Buckets A/B/C).
 - [x] **G4.** Three-terminal flow documented; no `dev` script, no new dep. Devs can adapt their own workflow.
@@ -15,13 +15,14 @@ Phases 1, 2, 4 can interleave. Phase 3 gated on phase 1. Phase 5 gates everythin
 
 ## Phase 1 — cc-ky5 ship + redeploy
 
-- [ ] `git checkout -b task/ky5-watcher-hint`
-- [ ] `br update cc-ky5 --claim`
-- [ ] Apply G1: edit component, add hint line.
-- [ ] `npm run typecheck && npm run lint && npm run test`
-- [ ] Local smoke (dev:server + dev:worker + dev:web).
-- [ ] Commit `Add data/incoming hint to upload UI (cc-ky5)`.
-- [ ] `br close cc-ky5`, `br sync --flush-only`, commit beads state, merge.
+- [x] `git checkout -b task/ky5-watcher-hint`
+- [x] `br update cc-ky5 --claim`
+- [x] Apply G1: edit component, add hint line.
+- [x] `npm run typecheck` (clean) and `npm run test` (111/111). `npm run lint` has 2 pre-existing errors in ecosystem.config.cjs (CommonJS require — PM2 needs that file CJS); not caused by ky5.
+- [ ] Local smoke (dev:server + dev:worker + dev:web) — Chair to do or skip.
+- [x] Commit `Add data/incoming hint to upload form (cc-ky5)` (sha ba7b29b).
+- [x] `br close cc-ky5`, `br sync --flush-only` (no dirty), beads state committed.
+- [ ] Merge `task/ky5-watcher-hint` to main (Chair).
 - [ ] Deploy: ssh, `git pull && npm ci && npm run migrate && npm run seed:demo && npm run build && pm2 reload ecosystem.config.cjs`.
 - [ ] Live smoke: hint visible, queue populated.
 
