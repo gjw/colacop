@@ -80,14 +80,18 @@ cd ~/colacop
 git pull
 npm ci
 npm run migrate
-npm run seed:fixtures   # idempotent — copies fixtures/pairs/ into data/incoming/
+npm run seed:demo       # copies agave/cointreau/rumble into data/incoming/
 npm run build
 pm2 reload ecosystem.config.cjs
 ```
 
 This is intentionally manual rather than CI/CD-driven; for a 3-day prototype the iteration speed matters more than the deploy ceremony.
 
-The seed step pre-populates the demo queue with the 6 committed fixture pairs so reviewers see a non-empty queue on first page load. It is idempotent (skips files already present in `data/incoming/`); combined with the worker's restart-idempotency check, repeating the deploy does not re-run Gemini against already-processed pairs.
+`seed:demo` drops three fixture pairs into `data/incoming/` so the watcher ingests them through the live Gemini pipeline on startup — reviewers' first page load shows a populated queue with real extraction results, not snapshotted DB rows. It is idempotent (skips files already present in `data/incoming/`); the worker's restart-idempotency check additionally avoids re-running Gemini against already-processed pairs across deploys.
+
+**Note on the demo seed:** the chosen trio is deliberate. Cointreau and rumble pass cleanly and demonstrate the happy path. **Agave is included specifically because it surfaces a known issue** — the `classType` field is unstable under the verbatim-extraction prompt, and you may see it land in `needs_review` or with a `low` confidence badge. This is intentional: the demo shows the system flagging real problems on first paint rather than rubber-stamping every label. The other three fixtures (fireball, rumple, shinok) are not seeded but remain available in the in-app fixtures panel for manual upload to exercise the live ingestion path.
+
+Clicking **Reset demo** in the UI runs the same flow: it truncates job/result/decision rows, deletes everything in `data/incoming/`, then reseeds the same three fixtures. Each Reset triggers three live Gemini extractions.
 
 ## Assumptions and limitations
 

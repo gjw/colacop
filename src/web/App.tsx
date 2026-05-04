@@ -826,7 +826,7 @@ function FixturesPanel({
     try {
       const result = await resetDemo();
       setFeedback(
-        `Reset: cleared ${result.jobsCleared} job(s), removed ${result.filesRemoved} file(s).`,
+        `Reset: cleared ${result.jobsCleared} job(s), removed ${result.filesRemoved} file(s), reseeded ${result.seeded} demo fixture(s).`,
       );
       setConfirmOpen(false);
       onResetComplete();
@@ -882,12 +882,13 @@ function FixturesPanel({
           </p>
           <p>
             This clears all jobs, layer-1 results, and layer-2 results from the
-            database, and removes every file in <code>data/incoming/</code>.
+            database, removes every file in <code>data/incoming/</code>, and
+            reseeds three demo fixtures (agave, cointreau, rumble) which the
+            watcher will then re-ingest live.
           </p>
           <p>
-            It does <strong>not</strong> repopulate the demo fixtures. After
-            reset, use the download links above to grab a pair and upload it via
-            the form below.
+            The other three fixtures remain available above for upload to
+            exercise the live extraction path.
           </p>
         </ConfirmModal>
       )}

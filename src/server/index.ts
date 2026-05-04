@@ -35,7 +35,7 @@ async function main(): Promise<void> {
   app.use("/api", createDecisionsExportRouter(db));
   app.use("/api/upload", createUploadRouter(incomingDir));
   app.use("/api/files", createFilesRouter(incomingDir));
-  app.use("/api/admin", createAdminRouter(db, incomingDir));
+  app.use("/api/admin", createAdminRouter(db, incomingDir, fixturesDir));
 
   app.use("/fixtures", express.static(fixturesDir));
 

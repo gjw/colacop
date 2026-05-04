@@ -151,11 +151,18 @@ export async function uploadFiles(
 export async function resetDemo(): Promise<{
   jobsCleared: number;
   filesRemoved: number;
+  seeded: number;
+  seededFixtures: readonly string[];
 }> {
   const res = await fetch("/api/admin/reset", { method: "POST" });
   if (!res.ok) {
     const err = (await res.json().catch(() => ({}))) as { error?: string };
     throw new Error(err.error ?? `reset ${res.status}`);
   }
-  return (await res.json()) as { jobsCleared: number; filesRemoved: number };
+  return (await res.json()) as {
+    jobsCleared: number;
+    filesRemoved: number;
+    seeded: number;
+    seededFixtures: readonly string[];
+  };
 }

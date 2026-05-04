@@ -4,10 +4,12 @@ import { Router } from "express";
 import { sql } from "kysely";
 import type { Kysely } from "kysely";
 import type { Database } from "../../db/schema.js";
+import { DEMO_FIXTURES, seedFixtures } from "../seedFixtures.js";
 
 export function createAdminRouter(
   db: Kysely<Database>,
   incomingDir: string,
+  fixturesDir: string,
 ): Router {
   const router = Router();
   const root = path.resolve(incomingDir);
@@ -40,7 +42,18 @@ export function createAdminRouter(
         if ((err as NodeJS.ErrnoException).code !== "ENOENT") throw err;
       }
 
-      res.json({ jobsCleared: jobsCount, filesRemoved });
+      const seed = await seedFixtures({
+        fixturesDir,
+        incomingDir: root,
+        names: DEMO_FIXTURES,
+      });
+
+      res.json({
+        jobsCleared: jobsCount,
+        filesRemoved,
+        seeded: seed.copied,
+        seededFixtures: DEMO_FIXTURES,
+      });
     } catch (err) {
       const reason = err instanceof Error ? err.message : String(err);
       res.status(500).json({ error: reason });

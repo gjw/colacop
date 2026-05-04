@@ -1,5 +1,4 @@
-import { promises as fs } from "node:fs";
-import path from "node:path";
+import { seedFixtures } from "../src/server/seedFixtures.js";
 
 try {
   process.loadEnvFile();
@@ -8,39 +7,31 @@ try {
 }
 
 async function main(): Promise<void> {
-  const pairsDir = path.resolve(
-    process.env["FIXTURES_DIR"] ?? "./fixtures/pairs",
-  );
-  const incomingDir = path.resolve(
-    process.env["INCOMING_DIR"] ?? "./data/incoming",
-  );
+  const fixturesDir = process.env["FIXTURES_DIR"] ?? "./fixtures/pairs";
+  const incomingDir = process.env["INCOMING_DIR"] ?? "./data/incoming";
+  const args = process.argv.slice(2).filter((a) => !a.startsWith("-"));
+  const names = args.length > 0 ? args : undefined;
 
-  await fs.mkdir(incomingDir, { recursive: true });
-
-  const entries = await fs.readdir(pairsDir);
-  const files = entries.filter((f) =>
-    /\.(jpe?g|png|webp|json)$/i.test(f),
+  const result = await seedFixtures(
+    names === undefined
+      ? { fixturesDir, incomingDir }
+      : { fixturesDir, incomingDir, names },
   );
 
-  let copied = 0;
-  let skipped = 0;
-  for (const name of files.sort()) {
-    const src = path.join(pairsDir, name);
-    const dest = path.join(incomingDir, name);
-    try {
-      await fs.access(dest);
-      skipped += 1;
-      console.log(`[seed] skip ${name} (already in incoming)`);
-      continue;
-    } catch {
-      // not present, copy below
-    }
-    await fs.copyFile(src, dest);
-    copied += 1;
-    console.log(`[seed] copy ${name}`);
+  if (names !== undefined) {
+    console.log(
+      `[seed] requested: ${names.join(", ")} (${result.copied} copied, ${result.skipped} already present)`,
+    );
+  } else {
+    console.log(
+      `[seed] all fixtures (${result.copied} copied, ${result.skipped} already present)`,
+    );
   }
-
-  console.log(`[seed] done: ${copied} copied, ${skipped} already present`);
+  if (result.missing.length > 0) {
+    console.warn(
+      `[seed] WARNING: requested fixtures not found in ${fixturesDir}: ${result.missing.join(", ")}`,
+    );
+  }
 }
 
 main().catch((err: unknown) => {
