@@ -28,8 +28,6 @@ A traced example showing how design decisions are grounded:
 - **Provider boundary** — S-005 + F-042 (Anthropic supply-chain / procurement risk for federal agencies; the Defense Secretary designated Anthropic as a supply-chain risk) → an app-owned `LabelProvider` interface in `core/providers/`, with Google Gemini 3.1 Pro as the first concrete implementation and Vertex AI Government (FedRAMP High) as the production swap path.
 - **Synthesis** — REQ-001..003 + REQ-011 → **UC-001** in `design/use-cases.yaml` (Cockburn-style single user-goal use case with extensions, deliberately *not* a scattershot of UC-001/002/003) → architectural choices in **`ARCHITECTURE.md`** (queue-first UI, watcher with `awaitWriteFinish`, two-layer verifier, paired-input pairing-by-stem, swappable provider).
 
-On the runtime side, two correctness properties worth flagging: the watcher's `INSERT ... ON CONFLICT (stem)` upsert handles chokidar burst-arrivals race-free at the database, and second-pass processing (JSON-after-image, or after a worker restart) rehydrates extracted fields from persisted Layer 1 rows rather than re-calling the model — one Gemini extraction per pair, not two.
-
 ## What it looks like
 
 <img width="800" alt="colacop queue view: lifecycle filter tabs, three demo fixtures processed, sample-fixtures download panel, and upload form" src="docs/job-queue.png" />
@@ -60,6 +58,8 @@ The tool ingests pairs of files: a label image (`.jpg`, `.jpeg`, `.png`, `.webp`
 Files in a pair may arrive in either order. If only the image is supplied, Layer 1 runs and Layer 2 reports `needs_application_data`; if only the JSON is supplied, the job is held until the image arrives.
 
 Submissions can be made by either dropping files into the watched `data/incoming/` directory or by uploading through the browser UI. Both paths produce the same internal representation.
+
+Two runtime correctness properties worth flagging: the watcher's `INSERT ... ON CONFLICT (stem)` upsert handles chokidar burst-arrivals race-free at the database, and second-pass processing (JSON-after-image, or after a worker restart) rehydrates extracted fields from persisted Layer 1 rows rather than re-calling the model — one Gemini extraction per pair, not two.
 
 ## Tools used
 
