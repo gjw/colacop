@@ -66,6 +66,8 @@ Kysely was chosen over Knex for the SQL access layer. Reasoning: under our `stri
 
 The shared `Database` interface in `src/db/schema.ts` is the source of truth for row shapes; `core/schemas.ts` Zod schemas validate at external boundaries (HTTP, filesystem, model-provider responses) and may differ from row shapes when needed.
 
+`jsonb` columns need a split read/write type because `node-postgres` parses JSONB on read but does not stringify on write — declare them as `ColumnType<T, string | null, string | null>` (see `JsonbColumn<T>` in `src/db/schema.ts`) and `JSON.stringify` the value on insert/update. Plain object/array values pass through and the insert silently 500s.
+
 ## Process Shape
 
 The architecture should preserve the core workflow implied by the requirements:
