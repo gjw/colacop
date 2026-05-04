@@ -2,6 +2,35 @@
 
 This document records the current implementation direction. It is not a final design spec; it captures the stack and architecture we intend to start from based on the facts and requirements already extracted.
 
+## Tool Positioning & Vocabulary
+
+This project is **agent-assisted COLA pre-review**, not automated COLA review. The distinction is regulatory, not stylistic, and it governs the words used in the UI, README, decision controls, and any explanatory copy.
+
+**The TTB specialist is the reviewer.** Always. The COLA review is the regulatory action of record — approval, return for correction, or rejection — and it is performed by a human exercising delegated authority. This tool does not have that authority and must not be described as if it does. Calling the tool a "review" muddies who decided what; in a regulatory or audit context that is a real problem.
+
+**The tool produces a recommendation, with evidence.** It reads the label (input), checks the label against TTB regulation and the application data (analysis), and emits a structured set of findings the specialist can accept, override, or amend (output). The findings cite the specific CFR section, prior COLA, or policy that triggered each flag. The job of the tool is not to be right; it is to be *right about why it might be wrong* — a flag like "alcohol content statement may violate 27 CFR 4.36(b)(1) because [reason]; confidence medium" is enormously more useful than "rejected." The first lets the specialist adjudicate in seconds; the second forces them to redo the work.
+
+**The HITL adjudicates.** The decision step (cc-syy: approve / reject / send_back) is the specialist's adjudication of the tool's recommendation. When their adjudication diverges from the tool's recommendation, that is an *override* and is itself valuable signal — logged overrides become training data and surface places where rules-as-coded diverge from rules-as-practiced.
+
+### Canonical vocabulary
+
+| Use | Don't use |
+|---|---|
+| The tool **reads** labels and **screens** / **pre-reviews** applications | "the tool reviews" |
+| The tool produces a **recommendation**, an **assessment**, or **findings** | "the tool decides" / "the tool approves" |
+| The specialist (HITL) **reviews** the application; the tool's output is one input to that review | (no clean substitute — review is the human's word) |
+| The HITL **adjudicates** the recommendation: accepts, overrides, or amends | "the user submits a review" |
+| Per-finding **verdict** (pass / fail / needs_review / needs_application_data) | "decision" — that's the HITL's word, not the tool's |
+| Label-level **decision** (approve / reject / send_back) | "verdict" — that's the tool's word, not the HITL's |
+| **Override** = HITL decision diverges from tool recommendation | (don't avoid the word; surface it) |
+
+### Where this lands
+
+- In-app header should read along the lines of "colacop · agent-assisted TTB label pre-review" (or similar — never "label review" alone, which implies the tool is performing it).
+- Decision UI (cc-syy) section header reads "Adjudicate" or "Record decision," not "Submit review." Buttons stay Approve / Reject / Send back — those are the HITL's adjudication outcomes.
+- README leans into the "right about why it might be wrong" framing in the approach summary.
+- Layer 1 / Layer 2 are *findings* with CFR citations; the existing per-finding `extracted_value` + `message` + cited regulation is exactly the assistance pattern this framing demands. Don't lose that thread.
+
 ## Chosen Stack
 
 The prototype should be built with:
