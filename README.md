@@ -1,4 +1,6 @@
 # colacop — agent-assisted TTB label pre-review
+(a proof reader)
+
 
 > **Live demo:** [https://colacop.foramerica.dev](https://colacop.foramerica.dev) — no login required.
 
