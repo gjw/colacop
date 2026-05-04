@@ -20,7 +20,7 @@ export function createAdminRouter(
         .executeTakeFirst();
       const jobsCount = jobsBefore ? Number(jobsBefore.c) : 0;
 
-      await sql`TRUNCATE TABLE jobs, layer1_results, layer2_results RESTART IDENTITY CASCADE`.execute(
+      await sql`TRUNCATE TABLE jobs, layer1_results, layer2_results, decisions RESTART IDENTITY CASCADE`.execute(
         db,
       );
 

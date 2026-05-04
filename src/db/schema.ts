@@ -1,4 +1,4 @@
-import type { Generated } from "kysely";
+import type { ColumnType, Generated } from "kysely";
 
 export type Lifecycle =
   | "awaiting_label"
@@ -52,8 +52,35 @@ export interface Layer2ResultsTable {
   created_at: Generated<Date>;
 }
 
+export type DecisionOutcome = "approve" | "reject" | "send_back";
+
+export type CitedFinding = { layer: 1 | 2; id: number };
+
+export type MissingItem =
+  | "abv_substantiation"
+  | "net_contents_clarity"
+  | "address_verification"
+  | "class_type_designation"
+  | "other";
+
+// JSONB columns: pg returns parsed JSON on read but does not stringify on
+// write — so insert/update accept a string and select returns the typed shape.
+export type JsonbColumn<T> = ColumnType<T, string | null, string | null>;
+
+export interface DecisionsTable {
+  id: Generated<number>;
+  job_id: number;
+  outcome: DecisionOutcome;
+  note: string | null;
+  cited_findings: JsonbColumn<CitedFinding[] | null>;
+  missing: JsonbColumn<MissingItem[] | null>;
+  decided_at: Generated<Date>;
+  decided_by: Generated<string>;
+}
+
 export interface Database {
   jobs: JobsTable;
   layer1_results: Layer1ResultsTable;
   layer2_results: Layer2ResultsTable;
+  decisions: DecisionsTable;
 }

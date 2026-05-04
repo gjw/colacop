@@ -114,6 +114,9 @@ tr:hover td { background: rgba(127,127,127,0.05); cursor: pointer; }
 .verdict.fail { color: white; background: var(--fail); }
 .verdict.needs_review { color: white; background: var(--review); }
 .verdict.needs_application_data { color: var(--muted); background: transparent; border: 1px dashed var(--muted); }
+.verdict.decision-approve { color: white; background: var(--pass); }
+.verdict.decision-reject { color: white; background: var(--fail); }
+.verdict.decision-send_back { color: white; background: var(--review); }
 
 .confidence-badge {
   display: inline-block;
@@ -393,3 +396,145 @@ tr:hover td { background: rgba(127,127,127,0.05); cursor: pointer; }
   color: white;
 }
 .modal-actions button:disabled { opacity: 0.6; cursor: not-allowed; }
+
+/* Decision panel */
+.decision-controls {
+  display: flex;
+  gap: 12px;
+  margin-top: 4px;
+}
+.decision-btn {
+  padding: 10px 22px;
+  border-radius: 6px;
+  font-weight: 600;
+  font-size: 14px;
+  cursor: pointer;
+  border: 1px solid var(--border);
+  background: transparent;
+  color: var(--fg);
+  font: inherit;
+}
+.decision-btn.approve { color: var(--pass); border-color: var(--pass); }
+.decision-btn.approve:hover { background: var(--pass); color: white; }
+.decision-btn.reject { color: var(--fail); border-color: var(--fail); }
+.decision-btn.reject:hover { background: var(--fail); color: white; }
+.decision-btn.send_back { color: var(--review); border-color: var(--review); }
+.decision-btn.send_back:hover { background: var(--review); color: white; }
+
+.decision-form {
+  border: 1px solid var(--border);
+  border-radius: 8px;
+  padding: 16px;
+  margin-top: 4px;
+  display: flex;
+  flex-direction: column;
+  gap: 14px;
+}
+.decision-form-head {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+}
+.link-btn {
+  background: none;
+  border: none;
+  color: var(--accent);
+  cursor: pointer;
+  text-decoration: underline;
+  font: inherit;
+  padding: 0;
+}
+.link-btn:disabled { opacity: 0.5; cursor: not-allowed; }
+
+.decision-list-label {
+  font-weight: 600;
+  font-size: 13px;
+  margin-bottom: 6px;
+}
+.decision-cite-list {
+  list-style: none;
+  padding: 0;
+  margin: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+}
+.decision-cite-list label {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  cursor: pointer;
+  font-size: 14px;
+}
+
+.decision-note-label {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+  font-weight: 600;
+  font-size: 13px;
+}
+.decision-note-label textarea {
+  font: inherit;
+  padding: 8px;
+  border: 1px solid var(--border);
+  border-radius: 6px;
+  background: var(--bg);
+  color: var(--fg);
+  resize: vertical;
+}
+.required-marker { color: var(--fail); font-weight: 400; }
+.optional-marker { color: var(--muted); font-weight: 400; }
+
+.decision-actions {
+  display: flex;
+  justify-content: flex-end;
+  gap: 8px;
+}
+.decision-actions button {
+  background: transparent;
+  color: var(--fg);
+  border: 1px solid var(--border);
+  border-radius: 6px;
+  padding: 6px 14px;
+  cursor: pointer;
+  font: inherit;
+}
+.decision-actions button.primary {
+  background: var(--accent);
+  border-color: var(--accent);
+  color: white;
+}
+.decision-actions button:disabled { opacity: 0.5; cursor: not-allowed; }
+
+.decision-summary {
+  border: 1px solid var(--border);
+  border-radius: 8px;
+  padding: 16px;
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+}
+.decision-summary-head {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+}
+.decision-meta {
+  color: var(--muted);
+  font-size: 12px;
+}
+.decision-note {
+  margin: 0;
+  padding: 8px 12px;
+  background: var(--bg);
+  border-left: 3px solid var(--border);
+  font-size: 14px;
+}
+.decision-cited ul {
+  margin: 4px 0 0;
+  padding-left: 20px;
+  font-size: 14px;
+}
+
+.feedback.error { color: var(--fail); }

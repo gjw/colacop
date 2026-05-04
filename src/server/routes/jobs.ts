@@ -4,6 +4,7 @@ import { Router } from "express";
 import type { Kysely, Selectable } from "kysely";
 import type { Database, JobsTable } from "../../db/schema.js";
 import { applicationDataSchema, type ApplicationData } from "../../core/schemas.js";
+import { createDecisionHandler } from "./decision.js";
 
 type JobRow = Selectable<JobsTable>;
 
@@ -33,15 +34,59 @@ export function createJobsRouter(db: Kysely<Database>): Router {
 
   router.get("/", async (req, res) => {
     const lifecycle = req.query["lifecycle"];
+    const decidedParam = req.query["decided"];
+    const decidedOnly = decidedParam === "true";
     let query = db
       .selectFrom("jobs")
-      .selectAll()
+      .selectAll("jobs")
       .orderBy("updated_at", "desc")
       .limit(200);
     if (typeof lifecycle === "string" && lifecycle.length > 0) {
       query = query.where("lifecycle", "=", lifecycle as never);
     }
+    if (decidedOnly) {
+      query = query.where((eb) =>
+        eb.exists(
+          eb
+            .selectFrom("decisions")
+            .select("decisions.id")
+            .whereRef("decisions.job_id", "=", "jobs.id"),
+        ),
+      );
+    } else {
+      query = query.where((eb) =>
+        eb.not(
+          eb.exists(
+            eb
+              .selectFrom("decisions")
+              .select("decisions.id")
+              .whereRef("decisions.job_id", "=", "jobs.id"),
+          ),
+        ),
+      );
+    }
     const rows = await query.execute();
+
+    if (decidedOnly && rows.length > 0) {
+      const decisions = await db
+        .selectFrom("decisions")
+        .selectAll()
+        .where(
+          "job_id",
+          "in",
+          rows.map((r) => r.id),
+        )
+        .execute();
+      const byJob = new Map(decisions.map((d) => [d.job_id, d]));
+      res.json({
+        jobs: rows.map((j) => ({
+          ...decorate(j),
+          decision: byJob.get(j.id) ?? null,
+        })),
+      });
+      return;
+    }
+
     res.json({ jobs: rows.map(decorate) });
   });
 
@@ -77,8 +122,21 @@ export function createJobsRouter(db: Kysely<Database>): Router {
       job.application_path !== null
         ? await loadApplication(job.application_path)
         : null;
-    res.json({ job: decorate(job), layer1, layer2, application });
+    const decision = await db
+      .selectFrom("decisions")
+      .selectAll()
+      .where("job_id", "=", id)
+      .executeTakeFirst();
+    res.json({
+      job: decorate(job),
+      layer1,
+      layer2,
+      application,
+      decision: decision ?? null,
+    });
   });
+
+  router.post("/:id/decision", createDecisionHandler(db));
 
   return router;
 }

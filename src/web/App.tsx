@@ -1,11 +1,18 @@
 import { useEffect, useState } from "react";
 import {
   type ApplicationData,
+  type CitedFinding,
+  type DecisionOutcome,
+  type DecisionRow,
   type JobDetail,
-  type JobRow,
+  type JobRowWithDecision,
+  type Layer1Row,
+  type Layer2Row,
   type Lifecycle,
+  type MissingItem,
   getJob,
   listJobs,
+  postDecision,
   resetDemo,
   uploadFiles,
 } from "./apiClient";
@@ -19,15 +26,35 @@ const FIXTURE_STEMS = [
   "shinok",
 ] as const;
 
-const FILTERS: Array<{ key: Lifecycle | "all"; label: string }> = [
-  { key: "all", label: "All" },
+type Filter = Lifecycle | "all" | "decided";
+
+const FILTERS: Array<{ key: Filter; label: string }> = [
+  { key: "all", label: "All (active)" },
   { key: "processed", label: "Processed" },
   { key: "queued", label: "Queued" },
   { key: "processing", label: "Processing" },
   { key: "awaiting_application", label: "Awaiting application" },
   { key: "awaiting_label", label: "Awaiting label" },
   { key: "failed", label: "Failed" },
+  { key: "decided", label: "Decided" },
 ];
+
+const MISSING_OPTIONS: Array<{ key: MissingItem; label: string }> = [
+  { key: "abv_substantiation", label: "ABV substantiation" },
+  { key: "net_contents_clarity", label: "Net contents clarity" },
+  { key: "address_verification", label: "Address verification" },
+  {
+    key: "class_type_designation",
+    label: "Class / type designation",
+  },
+  { key: "other", label: "Other (specify in note)" },
+];
+
+function decisionLabel(outcome: DecisionOutcome): string {
+  if (outcome === "approve") return "approved";
+  if (outcome === "reject") return "rejected";
+  return "sent back";
+}
 
 function ConfidenceBadge({ value }: { value: "low" | "med" | "hi" }): JSX.Element {
   return <span className={`confidence-badge ${value}`}>{value}</span>;
@@ -39,6 +66,12 @@ function LifecycleBadge({ value }: { value: Lifecycle }): JSX.Element {
 
 function VerdictBadge({ value }: { value: string }): JSX.Element {
   return <span className={`verdict ${value}`}>{value.replace(/_/g, " ")}</span>;
+}
+
+function DecisionBadge({ value }: { value: DecisionOutcome }): JSX.Element {
+  return (
+    <span className={`verdict decision-${value}`}>{decisionLabel(value)}</span>
+  );
 }
 
 const TRUNCATE_LIMIT = 120;
@@ -86,9 +119,11 @@ function rollupVerdict(detail: JobDetail): string {
 function JobList({
   jobs,
   onSelect,
+  decidedView,
 }: {
-  jobs: JobRow[];
+  jobs: JobRowWithDecision[];
   onSelect: (id: number) => void;
+  decidedView: boolean;
 }): JSX.Element {
   if (jobs.length === 0) {
     return <div className="empty">No jobs match this filter yet.</div>;
@@ -98,7 +133,7 @@ function JobList({
       <thead>
         <tr>
           <th>Stem</th>
-          <th>Lifecycle</th>
+          <th>{decidedView ? "Decision" : "Lifecycle"}</th>
           <th>Image</th>
           <th>Application</th>
           <th>Updated</th>
@@ -109,7 +144,11 @@ function JobList({
           <tr key={j.id} onClick={() => onSelect(j.id)}>
             <td>{j.stem}</td>
             <td>
-              <LifecycleBadge value={j.lifecycle} />
+              {decidedView && j.decision ? (
+                <DecisionBadge value={j.decision.outcome} />
+              ) : (
+                <LifecycleBadge value={j.lifecycle} />
+              )}
             </td>
             <td>{j.image_path ? "✓" : "—"}</td>
             <td>{j.application_path ? "✓" : "—"}</td>
@@ -190,20 +229,331 @@ function LabelImagePanel({
   );
 }
 
+function findingKey(layer: 1 | 2, id: number): string {
+  return `${layer}:${id}`;
+}
+
+function findingLabel(
+  layer: 1 | 2,
+  row: Layer1Row | Layer2Row,
+): string {
+  return `L${layer} · ${row.field_name} (${row.verdict.replace(/_/g, " ")})`;
+}
+
+function DecisionSummary({
+  decision,
+  layer1,
+  layer2,
+}: {
+  decision: DecisionRow;
+  layer1: Layer1Row[];
+  layer2: Layer2Row[];
+}): JSX.Element {
+  const findings = decision.cited_findings ?? [];
+  const findingRows = findings
+    .map((c) => {
+      const row =
+        c.layer === 1
+          ? layer1.find((r) => r.id === c.id)
+          : layer2.find((r) => r.id === c.id);
+      if (!row) return null;
+      return { c, label: findingLabel(c.layer, row) };
+    })
+    .filter((x): x is { c: CitedFinding; label: string } => x !== null);
+  const missing = decision.missing ?? [];
+  return (
+    <div className="decision-summary">
+      <div className="decision-summary-head">
+        <DecisionBadge value={decision.outcome} />
+        <span className="decision-meta">
+          {new Date(decision.decided_at).toLocaleString()} ·{" "}
+          {decision.decided_by}
+        </span>
+      </div>
+      {decision.note && (
+        <p className="decision-note">{decision.note}</p>
+      )}
+      {findingRows.length > 0 && (
+        <div className="decision-cited">
+          <div className="decision-list-label">Cited findings:</div>
+          <ul>
+            {findingRows.map(({ c, label }) => (
+              <li key={findingKey(c.layer, c.id)}>{label}</li>
+            ))}
+          </ul>
+        </div>
+      )}
+      {missing.length > 0 && (
+        <div className="decision-cited">
+          <div className="decision-list-label">Missing:</div>
+          <ul>
+            {missing.map((m) => {
+              const opt = MISSING_OPTIONS.find((o) => o.key === m);
+              return <li key={m}>{opt ? opt.label : m}</li>;
+            })}
+          </ul>
+        </div>
+      )}
+    </div>
+  );
+}
+
+function DecisionForm({
+  layer1,
+  layer2,
+  jobId,
+  onDecided,
+}: {
+  layer1: Layer1Row[];
+  layer2: Layer2Row[];
+  jobId: number;
+  onDecided: () => void;
+}): JSX.Element {
+  const [outcome, setOutcome] = useState<DecisionOutcome | null>(null);
+  const [note, setNote] = useState("");
+  const [cited, setCited] = useState<Set<string>>(new Set());
+  const [missing, setMissing] = useState<Set<MissingItem>>(new Set());
+  const [busy, setBusy] = useState(false);
+  const [error, setError] = useState<string>("");
+
+  function reset(): void {
+    setOutcome(null);
+    setNote("");
+    setCited(new Set());
+    setMissing(new Set());
+    setError("");
+  }
+
+  function toggleCited(layer: 1 | 2, id: number): void {
+    const k = findingKey(layer, id);
+    const next = new Set(cited);
+    if (next.has(k)) next.delete(k);
+    else next.add(k);
+    setCited(next);
+  }
+
+  function toggleMissing(item: MissingItem): void {
+    const next = new Set(missing);
+    if (next.has(item)) next.delete(item);
+    else next.add(item);
+    setMissing(next);
+  }
+
+  async function submit(): Promise<void> {
+    setBusy(true);
+    setError("");
+    try {
+      const trimmedNote = note.trim();
+      if (outcome === "approve") {
+        await postDecision(jobId, {
+          outcome: "approve",
+          ...(trimmedNote ? { note: trimmedNote } : {}),
+        });
+      } else if (outcome === "reject") {
+        const cited_findings: CitedFinding[] = Array.from(cited).map((k) => {
+          const [layerStr, idStr] = k.split(":");
+          const layer = (layerStr === "1" ? 1 : 2) as 1 | 2;
+          return { layer, id: Number(idStr) };
+        });
+        await postDecision(jobId, {
+          outcome: "reject",
+          cited_findings,
+          ...(trimmedNote ? { note: trimmedNote } : {}),
+        });
+      } else if (outcome === "send_back") {
+        await postDecision(jobId, {
+          outcome: "send_back",
+          missing: Array.from(missing),
+          ...(trimmedNote ? { note: trimmedNote } : {}),
+        });
+      }
+      onDecided();
+    } catch (err) {
+      setError(err instanceof Error ? err.message : String(err));
+    } finally {
+      setBusy(false);
+    }
+  }
+
+  if (outcome === null) {
+    return (
+      <div className="decision-controls">
+        <button
+          type="button"
+          className="decision-btn approve"
+          onClick={() => setOutcome("approve")}
+        >
+          Approve
+        </button>
+        <button
+          type="button"
+          className="decision-btn reject"
+          onClick={() => setOutcome("reject")}
+        >
+          Reject
+        </button>
+        <button
+          type="button"
+          className="decision-btn send_back"
+          onClick={() => setOutcome("send_back")}
+        >
+          Send back
+        </button>
+      </div>
+    );
+  }
+
+  const canSubmit =
+    outcome === "approve"
+      ? true
+      : outcome === "reject"
+        ? cited.size > 0
+        : missing.size > 0 &&
+          (!missing.has("other") || note.trim().length > 0);
+
+  return (
+    <div className="decision-form">
+      <div className="decision-form-head">
+        <DecisionBadge value={outcome} />
+        <button
+          type="button"
+          className="link-btn"
+          onClick={reset}
+          disabled={busy}
+        >
+          change
+        </button>
+      </div>
+
+      {outcome === "reject" && (
+        <div className="decision-citations">
+          <div className="decision-list-label">
+            Cite the findings driving this rejection (at least one):
+          </div>
+          <ul className="decision-cite-list">
+            {layer1.map((r) => {
+              const k = findingKey(1, r.id);
+              return (
+                <li key={k}>
+                  <label>
+                    <input
+                      type="checkbox"
+                      checked={cited.has(k)}
+                      onChange={() => toggleCited(1, r.id)}
+                    />{" "}
+                    {findingLabel(1, r)}
+                  </label>
+                </li>
+              );
+            })}
+            {layer2.map((r) => {
+              const k = findingKey(2, r.id);
+              return (
+                <li key={k}>
+                  <label>
+                    <input
+                      type="checkbox"
+                      checked={cited.has(k)}
+                      onChange={() => toggleCited(2, r.id)}
+                    />{" "}
+                    {findingLabel(2, r)}
+                  </label>
+                </li>
+              );
+            })}
+          </ul>
+        </div>
+      )}
+
+      {outcome === "send_back" && (
+        <div className="decision-citations">
+          <div className="decision-list-label">
+            What's missing (at least one):
+          </div>
+          <ul className="decision-cite-list">
+            {MISSING_OPTIONS.map((opt) => (
+              <li key={opt.key}>
+                <label>
+                  <input
+                    type="checkbox"
+                    checked={missing.has(opt.key)}
+                    onChange={() => toggleMissing(opt.key)}
+                  />{" "}
+                  {opt.label}
+                </label>
+              </li>
+            ))}
+          </ul>
+        </div>
+      )}
+
+      <label className="decision-note-label">
+        Note{" "}
+        {outcome === "send_back" && missing.has("other") ? (
+          <span className="required-marker">(required for "Other")</span>
+        ) : (
+          <span className="optional-marker">(optional)</span>
+        )}
+        <textarea
+          value={note}
+          onChange={(e) => setNote(e.target.value)}
+          rows={3}
+          placeholder={
+            outcome === "approve"
+              ? "Optional rationale or context."
+              : outcome === "reject"
+                ? "Optional explanation of the rejection."
+                : "What needs to come back; required if you ticked 'Other'."
+          }
+        />
+      </label>
+
+      <div className="decision-actions">
+        <button type="button" onClick={reset} disabled={busy}>
+          Cancel
+        </button>
+        <button
+          type="button"
+          className="primary"
+          onClick={() => void submit()}
+          disabled={!canSubmit || busy}
+        >
+          {busy
+            ? "Saving..."
+            : outcome === "approve"
+              ? "Confirm approve"
+              : outcome === "reject"
+                ? "Confirm reject"
+                : "Confirm send back"}
+        </button>
+      </div>
+
+      {error && <div className="feedback error">{error}</div>}
+    </div>
+  );
+}
+
 function JobDetailView({
   detail,
   onBack,
+  onDecided,
 }: {
   detail: JobDetail;
   onBack: () => void;
+  onDecided: () => void;
 }): JSX.Element {
-  const { job, layer1, layer2, application } = detail;
+  const { job, layer1, layer2, application, decision } = detail;
   const rollup = rollupVerdict(detail);
   return (
     <div>
       <header>
         <h1>
-          {job.stem} <VerdictBadge value={rollup} />
+          {job.stem}{" "}
+          {decision ? (
+            <DecisionBadge value={decision.outcome} />
+          ) : (
+            <VerdictBadge value={rollup} />
+          )}
         </h1>
         <div className="crumbs">
           <a
@@ -283,6 +633,29 @@ function JobDetailView({
               </div>
             </div>
           ))
+        )}
+      </div>
+
+      <div className="detail-section">
+        <h2>Decision</h2>
+        {decision ? (
+          <DecisionSummary
+            decision={decision}
+            layer1={layer1}
+            layer2={layer2}
+          />
+        ) : job.lifecycle === "processed" ? (
+          <DecisionForm
+            jobId={job.id}
+            layer1={layer1}
+            layer2={layer2}
+            onDecided={onDecided}
+          />
+        ) : (
+          <div className="empty">
+            Decision is available once the job reaches{" "}
+            <code>processed</code>.
+          </div>
         )}
       </div>
     </div>
@@ -486,14 +859,25 @@ function FixturesPanel({
 }
 
 export function App(): JSX.Element {
-  const [filter, setFilter] = useState<Lifecycle | "all">("all");
-  const [jobs, setJobs] = useState<JobRow[]>([]);
+  const [filter, setFilter] = useState<Filter>("all");
+  const [jobs, setJobs] = useState<JobRowWithDecision[]>([]);
   const [selected, setSelected] = useState<number | null>(null);
   const [detail, setDetail] = useState<JobDetail | null>(null);
+  const decidedView = filter === "decided";
 
   async function refresh(): Promise<void> {
-    const rows = await listJobs(filter === "all" ? undefined : filter);
+    const lifecycle =
+      filter === "all" || filter === "decided"
+        ? undefined
+        : (filter as Lifecycle);
+    const rows = await listJobs(lifecycle, decidedView);
     setJobs(rows);
+  }
+
+  async function refreshDetail(): Promise<void> {
+    if (selected === null) return;
+    const d = await getJob(selected);
+    setDetail(d);
   }
 
   useEffect(() => {
@@ -519,7 +903,14 @@ export function App(): JSX.Element {
   if (selected !== null && detail) {
     return (
       <div className="app">
-        <JobDetailView detail={detail} onBack={() => setSelected(null)} />
+        <JobDetailView
+          detail={detail}
+          onBack={() => setSelected(null)}
+          onDecided={() => {
+            void refreshDetail();
+            void refresh();
+          }}
+        />
       </div>
     );
   }
@@ -541,7 +932,7 @@ export function App(): JSX.Element {
           </button>
         ))}
       </div>
-      <JobList jobs={jobs} onSelect={setSelected} />
+      <JobList jobs={jobs} onSelect={setSelected} decidedView={decidedView} />
       <FixturesPanel
         onResetComplete={() => {
           setSelected(null);
