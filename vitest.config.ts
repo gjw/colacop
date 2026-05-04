@@ -5,5 +5,6 @@ export default defineConfig({
     root: ".",
     include: ["src/**/*.{test,spec}.{ts,tsx}"],
     exclude: ["node_modules/**", "dist/**"],
+    fileParallelism: false,
   },
 });

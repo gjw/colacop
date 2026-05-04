@@ -22,7 +22,7 @@ const describeIfDb = databaseUrl ? describe : describe.skip;
 class CountingProvider implements LabelProvider {
   calls = 0;
   constructor(private readonly fixture: ExtractedFields) {}
-  async analyzeLabel(_imagePath: string): Promise<ExtractedFields> {
+  async analyzeLabel(): Promise<ExtractedFields> {
     this.calls += 1;
     return this.fixture;
   }

@@ -16,6 +16,7 @@ import {
   resetDemo,
   uploadFiles,
 } from "./apiClient";
+import { renderWithCitations } from "./citations";
 
 const FIXTURE_STEMS = [
   "agave",
@@ -629,7 +630,7 @@ function JobDetailView({
                 <VerdictBadge value={r.verdict} />
               </div>
               <div className="msg">
-                {r.message}
+                {renderWithCitations(r.message)}
                 <div className="extracted-line">
                   <span className="extracted-label">extracted:</span>{" "}
                   <ValueCell value={r.extracted_value} />
@@ -652,7 +653,7 @@ function JobDetailView({
                 <VerdictBadge value={r.verdict} />
               </div>
               <div className="msg">
-                {r.message}
+                {renderWithCitations(r.message)}
                 <div className="extracted-line">
                   <span className="extracted-label">extracted:</span>{" "}
                   <ValueCell value={r.extracted_value} />

@@ -117,6 +117,13 @@ tr:hover td { background: rgba(127,127,127,0.05); cursor: pointer; }
 .verdict.decision-approve { color: white; background: var(--pass); }
 .verdict.decision-reject { color: white; background: var(--fail); }
 .verdict.decision-send_back { color: white; background: var(--review); }
+.cfr-citation {
+  text-decoration: underline;
+  text-decoration-style: dotted;
+  text-underline-offset: 2px;
+}
+.cfr-citation:hover { text-decoration-style: solid; }
+
 .verdict.override-badge {
   color: var(--review);
   background: transparent;
