@@ -11,4 +11,10 @@ export default tseslint.config(
       sourceType: "module",
     },
   },
+  {
+    files: ["**/*.cjs"],
+    rules: {
+      "@typescript-eslint/no-require-imports": "off",
+    },
+  },
 );
