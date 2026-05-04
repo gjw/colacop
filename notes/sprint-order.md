@@ -1,147 +1,96 @@
 # Sprint Order
 
-Updated Sunday 2026-05-03 afternoon by Tower (post cc-o1k / cc-7v3 / cc-ckg / cc-1c5
-merge). Hard deadline Mon 2026-05-04 EOD; target ship Sunday evening or early Monday.
+Updated Monday 2026-05-04 by Tower (post cc-syy + cc-0ue + cc-ye9 + cc-srj merge).
+Hard deadline EOD; daylight available — expanded scope vs Sunday's plan.
 
 ## Where we are
 
-- **Today:** Sunday 2026-05-03, late afternoon. ~24-30h to deadline.
-- **Closed since last replan (Saturday evening):**
-  - cc-o1k — extracted values surfaced on every L1/L2 finding.
-  - cc-7v3 — fireball alcoholContent fixed by tightening Gemini prompt to verbatim extraction.
-  - cc-ckg — Linode deploy live at https://colacop.foramerica.dev.
-  - cc-1c5 — reviewer experience: fixtures panel, downloadable fixtures, reset button,
-    format help, processing spinner, worker-restart idempotence.
-  - cc-idm — closed as subsumed by cc-1c5 (reset button shipped there).
-- **Two follow-up bugs filed during cc-1c5 smoke test:**
-  - cc-1s8 (P2) — upsertJob check-then-INSERT race; non-fatal log noise.
-  - cc-hy3 (P2) — worker double-calls Gemini when image-then-JSON path is taken; cost waste.
-- **Critical finding from this replan — not addressed in previous sprint plan:**
-  cc-7v3's verbatim-prompt change introduced verdict regressions on 4 of the 6 demo
-  bottles. Documented inside cc-0ue but not surfaced. **cc-0ue promoted P1 → P0.**
-- **cc-lm6 promoted P1 → P0** — Gemini 429 retry. The cc-1c5 reset button re-queues
-  all 6 fixtures simultaneously; without retry, some bottles will fail visibly on
-  reset, defeating the reset feature.
-- **cc-g87 demoted P1 → P2** — stub-provider UI cue. Production live URL has the
-  Gemini key set; this only triggers on misconfiguration. Defer to README known-limitations.
+- **Today:** Monday 2026-05-04. More buffer than Sunday's plan assumed.
+- **Closed since Sunday's replan:**
+  - cc-0ue — fixture audit + verbatim verdict-tolerance fixes.
+  - cc-ye9 — decoupled low-confidence from L1 verdict.
+  - cc-srj — per-field needs_application_data on partial JSON.
+  - cc-syy — decision UI (approve / reject / send_back) + adjudication framing.
+- **New positioning lock-in (this morning):**
+  - ARCHITECTURE.md gained "Tool Positioning & Vocabulary" section. Tool = recommendation/screening; HITL = reviewer/adjudicator. Vocabulary table + "right about why it might be wrong" framing. cc-syy shipped with this language; cc-64v carries it through the README.
+- **Beads filed since Sunday:**
+  - cc-9wh (P2) — multi-select upload.
+  - cc-2sa (P1) — pre-seed 3 fixtures (Trench in progress).
+  - cc-cm5 (P1, was P2) — log HITL-decision-vs-tool-recommendation overrides.
+  - cc-wrn (P1) — link CFR citations in verdict messages to ecfr.gov.
+- **Promotions this morning (more daylight than Sunday assumed):**
+  - cc-cm5 P2 → P1: Treasury-CIO-relevant, small (~45 min), don't ship cc-syy without it.
+  - cc-1s8 P2 → P1: trivial fix (`INSERT ... ON CONFLICT (stem) DO UPDATE`); removes log noise.
+  - cc-hy3 P2 → P1: small (~30 min); halves Gemini cost on watcher path.
+  - cc-htd narrowed: 2-3 high-leverage edge fixtures, not the original 5-6.
 
-## Tier ranking (final pre-submission)
+## Tier ranking (Monday-final)
 
-### Tier 1 — must ship for a credible demo
-
-| ID | P | Why |
-|---|---|---|
-| `cc-0ue` | 0 | **REGRESSION**. Live URL currently shows 4 bottles with bogus verdicts after the cc-7v3 verbatim-prompt change. cointreau warning false-fail; rumple/shinok countryOfOrigin false needs_review; rumple netContents false needs_review; possible agave classType regression; plus fireball.json has wrong netContents (`50 mL` vs the actual `375 mL` bottle). This is the worst-possible demo failure mode — the system flags valid labels as suspect. |
-| `cc-lm6` | 0 | Gemini 429 retry. The cc-1c5 reset button re-queues 6 fixtures; without backoff, the reset path produces visible failures, breaking the feature we just shipped. |
-| `cc-ye9` | 0 | Decouple low-confidence from L1 verdict. Surgical, ~30 min. UC-001.3c semantics. |
-| `cc-srj` | 0 | Per-field needs_application_data on partial JSON. Surgical, ~30 min. UC-001.4e semantics. |
-
-### Tier 2 — strongly want for a complete demo
+### Tier 1 — must ship before submit
 
 | ID | P | Why |
 |---|---|---|
-| `cc-syy` | 0 | Decision step UC-001 step 6 (approve / reject / send_back). Biggest UC-001 hole. ~2-3h Trench work. Skippable in extremis if Sunday evening runs long; the rule engine + transparency layer is the interesting bit either way. |
+| `cc-2sa` | 1 | Pre-seed 3 cleanest fixtures so reviewer lands on populated queue. Trench in progress. |
+| `cc-cm5` | 1 | Override-detection: HITL-decision-vs-tool-recommendation logged. Small; operationalizes the "overrides are valuable signal" Treasury-CIO point. |
+| `cc-64v` | 1 | README polish + screenshots + known-limitations + framing throughout. Mandatory final deliverable. |
 
-### Tier 3 — must ship for submission
-
-| ID | P | Why |
-|---|---|---|
-| `cc-64v` | 1 | README final polish: live URL prominent, local-run, deploy story, source→fact→requirement→use-case pipeline, known limitations. Sunday evening — cannot submit without this. |
-
-### Tier 4 — polish (only if Sunday evening has slack)
+### Tier 2 — strong polish (small wins, high payoff)
 
 | ID | P | Why |
 |---|---|---|
-| `cc-htd` | 1 | Edge-case fixtures. Skippable per previous plan; the 6 real bottles cover the happy path and (post-cc-0ue) the realistic verdict paths. |
-| `cc-55c` | 2 | L2 column-table polish. Visual nicety; cc-o1k already exposes the data. |
-| `cc-g87` | 2 | Stub-provider UI cue. Defer to README known-limitations. |
-| `cc-fsa` | 2 | Gemini ABV proof-tail stripping. Likely subsumed by cc-7v3 verbatim prompt; verify and close on Monday smoke test if so. |
+| `cc-1s8` + `cc-hy3` | 1 | Worker-correctness batch. ~45 min combined. Removes log noise + halves Gemini cost on watcher. |
+| `cc-wrn` | 1 | Link CFR citations to ecfr.gov. ~30 min. Makes the "evidence-rich recommendation" framing tangible. |
+| `cc-fsa` | 2 | Verify during localhost smoke (5 min). Likely already fixed by cc-7v3 verbatim prompt. Close or document. |
+| `cc-hfv` | 2 | Delete or move docs/handoff.md (5 min Tower). README doesn't link to it. |
+| `cc-htd` | 1 | 2-3 high-leverage edge fixtures: front-only crop (missing-warning), lowercase warning, bad-photo (low-confidence). All derivable from existing bottles. ~1-2h Chair image work. |
 
-### Tier 5 — explicitly deferred to README known-limitations
+### Tier 3 — stretch (only if everything above lands and time remains)
 
 | ID | P | Why |
 |---|---|---|
-| `cc-egk` | 2 | Worker single-writer guarantee. Production has one PM2-managed worker; dev-environment issue. Document. |
-| `cc-uhc` | 2 | Cache extraction so JSON-after-image doesn't re-extract. Cost optimization. Document. |
-| `cc-1s8` | 2 | upsertJob check-then-INSERT race. Non-fatal log noise; system recovers. Document. |
-| `cc-hy3` | 2 | Worker double-Gemini-call on image-then-JSON. Cost waste; correctness fine. Document. |
-| `cc-hfv` | 2 | docs/handoff.md drift. Defer indefinitely. |
+| `cc-9wh` + `cc-lm6` | P2 / P1 | Multi-select upload + 429 retry batch. ~1.5h. Multi-select makes 429 a real risk; ship together or skip together. |
+| `cc-55c` | 2 | L2 column-table polish. ~30-45 min UI work. cc-o1k already exposes the data; this is layout. |
 
-## Sunday afternoon → evening sequence
+### Tier 4 — README known-limitations (no code change)
+
+| ID | P | Documented as |
+|---|---|---|
+| `cc-egk` | 2 | Worker single-writer guarantee — PM2 enforces in production. |
+| `cc-uhc` | 2 | Cache extraction across worker restarts (cc-hy3 fixes the in-process case; cc-uhc covers cross-restart). |
+| `cc-g87` | 2 | Stub-provider fallback has no in-UI cue; only triggers on misconfigured GEMINI_API_KEY. |
+
+## Monday sequence
 
 ```
-1. cc-0ue → spawn fresh Trench. Single coherent task: make verbatim Gemini
-   extractions produce correct verdicts.
-   
-   PROBLEM A: walk all 6 fixtures (agave, cointreau, fireball, rumble, rumple,
-   shinok), compare each printed value to fixtures/applications/<stem>.json,
-   correct any field that does not match the imaged bottle. Known: fireball
-   netContents 50 mL → 375 mL.
-   
-   PROBLEM B: tighten verification.ts:
-   - checkWarning: strip line-break hyphens ('PREG- NANCY' → 'PREGNANCY')
-     before comparison; promotes cointreau back to needs_review/pass.
-   - compareString: when extracted contains the canonical app value with a
-     known wrapper prefix ('CONTENT X', 'PRODUCT OF X', 'PRODUCT OF THE X'),
-     treat as pass. Affects rumple netContents, rumple/shinok countryOfOrigin.
-   - Investigate agave classType regression: open the photo, decide whether
-     classType is genuinely visible. If not, the extraction is now correctly
-     conservative and the application JSON should be adjusted (or accept the
-     fail as a real demo signal).
-   
-   ~1.5-2h Trench. ~5-7 file changes.
-
-2. cc-lm6 → fresh Trench (or in-flight with cc-0ue if isolated). Gemini 429
-   retry with exponential backoff in src/core/providers/gemini.ts. Honor
-   retryDelay hint when present; cap at 3 retries.
-   ~30-45 min. ~2-3 files.
-
-3. cc-ye9 + cc-srj → batch into one Trench task (both touch verification.ts
-   and schemas.ts). Decouple confidence from verdict + per-field
-   needs_application_data on missing application keys.
-   ~45-60 min combined. ~3 files.
-
-4. Smoke test live URL: redeploy, reset, verify all 6 bottles produce
-   sensible verdicts post cc-0ue + cc-ye9 + cc-srj. Check 429 retry by
-   triggering reset twice in quick succession.
-
-5. cc-syy → fresh Trench. Decisions table migration; POST /api/jobs/:id/decision;
-   JobDetailView decision controls; default-exclude decided jobs from active
-   queue; 'Decided' filter.
-   ~2-3h. ~5-7 files.
-
-6. Smoke test live URL: full UC-001 flow including decisions.
-
-7. cc-64v → README polish. Either Tower or Chair. Live URL prominent;
-   local-run instructions verified; deploy story; UC-001 pointer; known
-   limitations section enumerating cc-egk / cc-uhc / cc-1s8 / cc-hy3 /
-   cc-g87 / cc-fsa / cc-q25 / cc-hfv.
+NOW       cc-2sa            pre-seed 3 fixtures            (Trench in progress)
+NEXT      cc-cm5            override detection             (~45 min Trench)
+          cc-1s8 + cc-hy3   worker correctness batch       (~45 min Trench)
+          cc-wrn            CFR citation linking           (~30 min Trench)
+          cc-fsa            verify during localhost smoke  (5 min Chair)
+          cc-hfv            handoff.md cleanup             (5 min Tower)
+          cc-htd            2-3 edge fixtures              (~1-2h Chair, image work)
+          cc-64v            README + screenshots           (~1-2h Tower/Chair)
+LATE      smoke localhost → redeploy → smoke live URL → submit
 ```
 
-## Monday
-
-```
-early:   Final smoke test on live URL. Submit by noon at the latest.
-```
-
-## Cuts available if Sunday evening slips
+## Cuts available if Monday slips
 
 In rough order of preference:
 
-1. **Skip cc-syy.** Sprint plan supports this. The reviewer can grok the
-   system's value from the transparency layer alone — they see what was
-   extracted, what the rule said, what the comparison found. Decisions
-   are the agent's next action; without them the demo simply ends after
-   step 5 of UC-001 and the README documents this as the known cut.
-2. **Skip cc-htd, cc-55c, cc-g87, cc-fsa** — already in Tier 4 / Tier 5.
-3. **Last-resort: skip the post-cc-0ue redeploy if regressions are not
-   visible enough.** cc-ye9 / cc-srj are surgical and low-risk; could ship
-   together with cc-syy in one Sunday-late deploy.
+1. **Skip cc-htd edge fixtures.** The 6 real bottles + cc-2sa pre-seed + reviewer-driven mismatched-pair uploads already cover the failure-mode story. Edge fixtures sharpen the demo but aren't required.
+2. **Skip cc-wrn.** CFR linking is polish; the citations are still in the message text, just not clickable.
+3. **Skip cc-1s8 + cc-hy3.** Document in README as known limitations.
+4. **Last-resort: skip cc-cm5.** Override signal becomes a README "future work" note.
 
-If all of (1) (2) skip, the demo is still credible: live URL, real bottles,
-real Gemini extraction, regulation-grounded verdicts that reflect the
-actual labels (post-cc-0ue), transparent extracted values, reviewer can
-upload their own. That's enough for the take-home.
+If all four cuts apply, the demo is still credible: live URL, real bottles, pre-seeded queue, real Gemini extraction, regulation-grounded verdicts (post cc-0ue), transparent extracted values, decision UI with adjudication framing, reviewer-driven upload + mismatched-pair failure demo.
+
+## Tier 5 — explicitly deferred (no fix, README doc only)
+
+| ID | P | Reason |
+|---|---|---|
+| `cc-egk` | 2 | PM2 enforces single worker in production. |
+| `cc-uhc` | 2 | Cost optimization; cc-hy3 covers in-process case. |
+| `cc-g87` | 2 | Defensive against env regression; live has the key set. |
 
 ## Decisions locked across all sessions
 
@@ -151,29 +100,30 @@ upload their own. That's enough for the take-home.
 - **Input frame:** label image + application data, paired by filename stem, one-to-one (F-044, F-046, REQ-012).
 - **Deployment target:** Linode 16 GB linode43393 in US Dallas TX, https://colacop.foramerica.dev (cc-4fk closed; cc-ckg deployed).
 - **TTB regulatory grounding:** F-047 / F-048 / F-051-054 / F-052 / F-056 / F-057.
-- **Verdict semantics:** Layer 1 verdict reflects the rule outcome only; extraction_confidence is a parallel signal (cc-ye9 will make this true in code Sunday).
-- **Decision step:** approve / reject / send_back + optional note; one decision per job; final for the prototype (no edit/undo). cc-syy implements.
+- **Verdict semantics:** Layer 1 verdict reflects the rule outcome only; extraction_confidence is a parallel signal (cc-ye9 closed).
+- **Decision step:** approve / reject / send_back + optional note; one decision per job; final for the prototype (cc-syy closed). Override-detection adds the diverged-from-recommendation signal (cc-cm5).
 - **Per-finding scope:** Option A — label-level decisions only, no per-finding overrides. cc-q25 closed; future work noted in README.
-- **Reviewer onboarding:** primary affordance is upload-driven workflow with downloadable fixtures and post-upload navigation; reset-to-empty is shipped as a discreet secondary affordance. cc-1c5 / cc-idm closed.
-- **Verbatim Gemini prompt:** cc-7v3 chose verbatim-extraction prompt over normalized-extraction. Verification logic must catch up to absorb common verbatim patterns (CONTENT X, PRODUCT OF X, line-break hyphens). cc-0ue carries this.
-- **Known-limitation pattern:** deferred bugs (cc-egk, cc-uhc, cc-1s8, cc-hy3, cc-g87, cc-fsa, cc-hfv) are transparently documented in README rather than fixed. cc-64v carries this.
+- **Reviewer onboarding:** primary affordance is upload-driven workflow with downloadable fixtures + post-upload navigation; reset-to-empty as discreet secondary affordance (cc-1c5 / cc-idm closed). Pre-seed adds 3 already-processed jobs at deploy time (cc-2sa).
+- **Verbatim Gemini prompt:** cc-7v3 chose verbatim-extraction. Verification logic absorbs common verbatim patterns (CONTENT X, PRODUCT OF X, line-break hyphens) per cc-0ue.
+- **Tool positioning:** agent-assisted COLA pre-review, not COLA review. Tool = recommendation/screening; HITL = reviewer/adjudicator. ARCHITECTURE.md "Tool Positioning & Vocabulary" section is canonical.
+- **Known-limitation pattern:** deferred bugs (cc-egk, cc-uhc, cc-g87, plus anything cut in Monday slip) are transparently documented in README rather than fixed. cc-64v carries this.
 
 ## Open issue inventory
 
 | ID | P | Type | Status | Notes |
 |---|---|---|---|---|
-| cc-0ue | 0 | task | open | TIER 1 NOW — fixture audit + verbatim verdict-tolerance fixes. |
-| cc-lm6 | 0 | bug | open | TIER 1 NOW — Gemini 429 retry with backoff. |
-| cc-ye9 | 0 | task | open | TIER 1 NEXT — decouple confidence from L1 verdict. Surgical. |
-| cc-srj | 0 | task | open | TIER 1 NEXT — per-field needs_application_data. Surgical. |
-| cc-syy | 0 | task | open | TIER 2 — decision UI; ship if Sunday evening permits. |
-| cc-64v | 1 | task | open | TIER 3 — README. Sunday evening, mandatory before submit. |
-| cc-htd | 1 | task | open | TIER 4 — edge fixtures. Skippable. |
-| cc-55c | 2 | task | open | TIER 4 — L2 column polish. |
-| cc-g87 | 2 | bug | open | TIER 4 — stub-provider UI cue; document instead. |
-| cc-fsa | 2 | task | open | TIER 4 — likely already fixed by cc-7v3 verbatim prompt; verify Monday. |
-| cc-1s8 | 2 | task | open | TIER 5 — README known-limitations. |
-| cc-hy3 | 2 | task | open | TIER 5 — README known-limitations. |
-| cc-egk | 2 | chore | open | TIER 5 — README known-limitations. |
-| cc-uhc | 2 | chore | open | TIER 5 — README known-limitations. |
-| cc-hfv | 2 | task | open | TIER 5 — defer indefinitely. |
+| cc-2sa | 1 | task | in_progress | TIER 1 NOW — pre-seed 3 fixtures. |
+| cc-cm5 | 1 | task | open | TIER 1 NEXT — override detection. |
+| cc-1s8 | 1 | task | open | TIER 2 — worker correctness batch with cc-hy3. |
+| cc-hy3 | 1 | task | open | TIER 2 — worker correctness batch with cc-1s8. |
+| cc-wrn | 1 | task | open | TIER 2 — CFR citation linking. |
+| cc-fsa | 2 | task | open | TIER 2 — smoke-verify; close or document. |
+| cc-hfv | 2 | task | open | TIER 2 — Tower cleanup of handoff.md. |
+| cc-htd | 1 | task | open | TIER 2 — 2-3 edge fixtures. |
+| cc-64v | 1 | task | open | TIER 1 FINAL — README polish + screenshots. |
+| cc-9wh | 2 | task | open | TIER 3 — multi-select upload; ship with cc-lm6 or skip. |
+| cc-lm6 | 1 | bug | open | TIER 3 — Gemini 429 retry; ship with cc-9wh or document. |
+| cc-55c | 2 | task | open | TIER 3 — L2 column polish. |
+| cc-egk | 2 | chore | open | TIER 4 — README known-limitation. |
+| cc-uhc | 2 | chore | open | TIER 4 — README known-limitation. |
+| cc-g87 | 2 | bug | open | TIER 4 — README known-limitation. |
