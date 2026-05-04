@@ -6,6 +6,7 @@ import type {
   Database,
   MissingItem,
 } from "../../db/schema.js";
+import { computeRecommendation } from "../../core/recommendation.js";
 
 const citedFindingSchema = z.object({
   layer: z.union([z.literal(1), z.literal(2)]),
@@ -96,25 +97,20 @@ export function createDecisionHandler(
     let citedFindings: CitedFinding[] | null = null;
     let missing: MissingItem[] | null = null;
 
+    const layer1Rows = await db
+      .selectFrom("layer1_results")
+      .select(["id", "verdict"])
+      .where("job_id", "=", id)
+      .execute();
+    const layer2Rows = await db
+      .selectFrom("layer2_results")
+      .select(["id", "verdict"])
+      .where("job_id", "=", id)
+      .execute();
+
     if (body.outcome === "reject") {
-      const layer1Ids = new Set(
-        (
-          await db
-            .selectFrom("layer1_results")
-            .select("id")
-            .where("job_id", "=", id)
-            .execute()
-        ).map((r) => r.id),
-      );
-      const layer2Ids = new Set(
-        (
-          await db
-            .selectFrom("layer2_results")
-            .select("id")
-            .where("job_id", "=", id)
-            .execute()
-        ).map((r) => r.id),
-      );
+      const layer1Ids = new Set(layer1Rows.map((r) => r.id));
+      const layer2Ids = new Set(layer2Rows.map((r) => r.id));
       for (const c of body.cited_findings) {
         const ok = c.layer === 1 ? layer1Ids.has(c.id) : layer2Ids.has(c.id);
         if (!ok) {
@@ -129,6 +125,11 @@ export function createDecisionHandler(
       missing = body.missing;
     }
 
+    const recommendation = computeRecommendation(
+      layer1Rows.map((r) => r.verdict),
+      layer2Rows.map((r) => r.verdict),
+    );
+
     const inserted = await db
       .insertInto("decisions")
       .values({
@@ -138,6 +139,7 @@ export function createDecisionHandler(
         cited_findings:
           citedFindings === null ? null : JSON.stringify(citedFindings),
         missing: missing === null ? null : JSON.stringify(missing),
+        recommendation,
       })
       .returningAll()
       .executeTakeFirstOrThrow();

@@ -74,6 +74,29 @@ function DecisionBadge({ value }: { value: DecisionOutcome }): JSX.Element {
   );
 }
 
+function recommendationLabel(value: DecisionOutcome): string {
+  if (value === "approve") return "approve";
+  if (value === "reject") return "reject";
+  return "send back";
+}
+
+function OverrideBadge({
+  decision,
+}: {
+  decision: DecisionRow;
+}): JSX.Element | null {
+  const r = decision.recommendation;
+  if (r === null || r === "pending" || r === decision.outcome) return null;
+  return (
+    <span
+      className="verdict override-badge"
+      title={`HITL adjudication diverges from tool recommendation (recommended: ${recommendationLabel(r)}).`}
+    >
+      override
+    </span>
+  );
+}
+
 const TRUNCATE_LIMIT = 120;
 
 function TruncatedValue({ text }: { text: string }): JSX.Element {
@@ -145,7 +168,10 @@ function JobList({
             <td>{j.stem}</td>
             <td>
               {decidedView && j.decision ? (
-                <DecisionBadge value={j.decision.outcome} />
+                <>
+                  <DecisionBadge value={j.decision.outcome} />
+                  <OverrideBadge decision={j.decision} />
+                </>
               ) : (
                 <LifecycleBadge value={j.lifecycle} />
               )}
@@ -265,6 +291,7 @@ function DecisionSummary({
     <div className="decision-summary">
       <div className="decision-summary-head">
         <DecisionBadge value={decision.outcome} />
+        <OverrideBadge decision={decision} />
         <span className="decision-meta">
           {new Date(decision.decided_at).toLocaleString()} ·{" "}
           {decision.decided_by}
@@ -550,7 +577,10 @@ function JobDetailView({
         <h1>
           {job.stem}{" "}
           {decision ? (
-            <DecisionBadge value={decision.outcome} />
+            <>
+              <DecisionBadge value={decision.outcome} />
+              <OverrideBadge decision={decision} />
+            </>
           ) : (
             <VerdictBadge value={rollup} />
           )}

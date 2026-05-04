@@ -60,6 +60,8 @@ export type MissingItem =
   | "class_type_designation"
   | "other";
 
+export type Recommendation = "approve" | "reject" | "send_back" | "pending";
+
 export interface DecisionRow {
   id: number;
   job_id: number;
@@ -67,6 +69,7 @@ export interface DecisionRow {
   note: string | null;
   cited_findings: CitedFinding[] | null;
   missing: MissingItem[] | null;
+  recommendation: Recommendation | null;
   decided_at: string;
   decided_by: string;
 }

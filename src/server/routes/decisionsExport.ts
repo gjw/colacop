@@ -1,6 +1,7 @@
 import { Router } from "express";
 import type { Kysely } from "kysely";
 import type { Database } from "../../db/schema.js";
+import { isOverride } from "../../core/recommendation.js";
 
 export function createDecisionsExportRouter(db: Kysely<Database>): Router {
   const router = Router();
@@ -31,6 +32,7 @@ export function createDecisionsExportRouter(db: Kysely<Database>): Router {
         "decisions.note",
         "decisions.cited_findings",
         "decisions.missing",
+        "decisions.recommendation",
         "decisions.decided_at",
         "decisions.decided_by",
       ])
@@ -46,7 +48,11 @@ export function createDecisionsExportRouter(db: Kysely<Database>): Router {
     res.setHeader("Content-Type", "application/x-ndjson; charset=utf-8");
     res.setHeader("Cache-Control", "no-store");
     for (const row of rows) {
-      res.write(`${JSON.stringify(row)}\n`);
+      const enriched = {
+        ...row,
+        is_override: isOverride(row.outcome, row.recommendation),
+      };
+      res.write(`${JSON.stringify(enriched)}\n`);
     }
     res.end();
   });

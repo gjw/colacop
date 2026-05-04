@@ -67,6 +67,8 @@ export type MissingItem =
 // write — so insert/update accept a string and select returns the typed shape.
 export type JsonbColumn<T> = ColumnType<T, string | null, string | null>;
 
+export type Recommendation = "approve" | "reject" | "send_back" | "pending";
+
 export interface DecisionsTable {
   id: Generated<number>;
   job_id: number;
@@ -74,6 +76,7 @@ export interface DecisionsTable {
   note: string | null;
   cited_findings: JsonbColumn<CitedFinding[] | null>;
   missing: JsonbColumn<MissingItem[] | null>;
+  recommendation: Recommendation | null;
   decided_at: Generated<Date>;
   decided_by: Generated<string>;
 }

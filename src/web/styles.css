@@ -117,6 +117,13 @@ tr:hover td { background: rgba(127,127,127,0.05); cursor: pointer; }
 .verdict.decision-approve { color: white; background: var(--pass); }
 .verdict.decision-reject { color: white; background: var(--fail); }
 .verdict.decision-send_back { color: white; background: var(--review); }
+.verdict.override-badge {
+  color: var(--review);
+  background: transparent;
+  border: 1px solid var(--review);
+  margin-left: 6px;
+  cursor: help;
+}
 
 .confidence-badge {
   display: inline-block;

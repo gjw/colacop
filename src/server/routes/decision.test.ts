@@ -5,6 +5,7 @@ import { afterAll, beforeAll, beforeEach, describe, expect, it } from "vitest";
 import { createDb, createPool } from "../../db/kysely.js";
 import type { Database } from "../../db/schema.js";
 import { createJobsRouter } from "./jobs.js";
+import { createDecisionsExportRouter } from "./decisionsExport.js";
 
 try {
   process.loadEnvFile();
@@ -34,6 +35,7 @@ describeIfDb("POST /api/jobs/:id/decision", () => {
     const app = express();
     app.use(express.json());
     app.use("/api/jobs", createJobsRouter(db));
+    app.use("/api", createDecisionsExportRouter(db));
     await new Promise<void>((resolve) => {
       server = app.listen(0, () => resolve());
     });
@@ -199,5 +201,33 @@ describeIfDb("POST /api/jobs/:id/decision", () => {
       decision: { outcome: string } | null;
     };
     expect(data.decision?.outcome).toBe("approve");
+  });
+
+  it("persists tool recommendation derived from layer verdicts (needs_review → send_back)", async () => {
+    const res = await postDecision({ outcome: "approve" });
+    expect(res.status).toBe(201);
+    const data = (await res.json()) as {
+      decision: { outcome: string; recommendation: string };
+    };
+    expect(data.decision.recommendation).toBe("send_back");
+  });
+
+  it("NDJSON export includes recommendation and is_override fields", async () => {
+    await postDecision({ outcome: "approve" });
+    const res = await fetch(`${baseUrl}/api/decisions.ndjson`);
+    expect(res.status).toBe(200);
+    const text = await res.text();
+    const lines = text.trim().split("\n");
+    expect(lines.length).toBeGreaterThan(0);
+    const row = JSON.parse(lines[0] ?? "{}") as {
+      job_id: number;
+      outcome: string;
+      recommendation: string | null;
+      is_override: boolean;
+    };
+    expect(row.job_id).toBe(jobId);
+    expect(row.outcome).toBe("approve");
+    expect(row.recommendation).toBe("send_back");
+    expect(row.is_override).toBe(true);
   });
 });
