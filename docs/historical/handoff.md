@@ -1,4 +1,13 @@
-# Handoff Notes
+# Handoff Notes (historical — superseded by ARCHITECTURE.md)
+
+> **Note:** These are early discovery-phase planning notes from before the
+> architecture was locked. They have drifted from the implemented system and
+> are kept for provenance only. For current architecture, vocabulary, and
+> design decisions see `ARCHITECTURE.md`. For sprint state see
+> `notes/sprint-order.md`. Bead tracker (`br list`) is authoritative for
+> open work.
+
+---
 
 This document is for the next coding agent or collaborator who resumes work in this repo. It explains the lightweight discovery workflow we have been using, what has already been decided, what has deliberately not been decided, and how to continue without losing the thread.
 
