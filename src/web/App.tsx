@@ -637,7 +637,7 @@ function JobDetailView({
       </div>
 
       <div className="detail-section">
-        <h2>Decision</h2>
+        <h2>Adjudicate</h2>
         {decision ? (
           <DecisionSummary
             decision={decision}
@@ -645,15 +645,21 @@ function JobDetailView({
             layer2={layer2}
           />
         ) : job.lifecycle === "processed" ? (
-          <DecisionForm
-            jobId={job.id}
-            layer1={layer1}
-            layer2={layer2}
-            onDecided={onDecided}
-          />
+          <>
+            <p className="adjudicate-helper">
+              Record your decision on this application. The findings above are
+              this tool's recommendation; the decision is yours.
+            </p>
+            <DecisionForm
+              jobId={job.id}
+              layer1={layer1}
+              layer2={layer2}
+              onDecided={onDecided}
+            />
+          </>
         ) : (
           <div className="empty">
-            Decision is available once the job reaches{" "}
+            Adjudication is available once the job reaches{" "}
             <code>processed</code>.
           </div>
         )}
@@ -918,8 +924,8 @@ export function App(): JSX.Element {
   return (
     <div className="app">
       <header>
-        <h1>colacop · TTB label review</h1>
-        <div className="crumbs">queue-first review</div>
+        <h1>colacop · agent-assisted TTB label pre-review</h1>
+        <div className="crumbs">queue-first pre-review</div>
       </header>
       <div className="toolbar">
         {FILTERS.map((f) => (

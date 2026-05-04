@@ -538,3 +538,13 @@ tr:hover td { background: rgba(127,127,127,0.05); cursor: pointer; }
 }
 
 .feedback.error { color: var(--fail); }
+
+.adjudicate-helper {
+  margin: 0 0 12px 0;
+  padding: 10px 14px;
+  background: rgba(127,127,127,0.06);
+  border-left: 3px solid var(--accent);
+  font-size: 13px;
+  color: var(--muted);
+  border-radius: 0 4px 4px 0;
+}
