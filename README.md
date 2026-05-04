@@ -6,17 +6,6 @@ A take-home prototype for the TTB IT Specialist position. The tool reads alcohol
 
 This is **agent-assisted pre-review**, not automated review. The regulatory action of record (approve / reject / send back) is the specialist's, exercising delegated authority. The tool's job is not to be right — it is to be *right about why it might be wrong*. A finding like "alcohol content statement may violate 27 CFR 4.36(b)(1) because [reason]; confidence medium" lets a specialist adjudicate in seconds; "rejected" forces them to redo the work. When the specialist's adjudication diverges from the tool's recommendation, that's surfaced as an **override** — itself valuable signal. See `ARCHITECTURE.md` § Tool Positioning & Vocabulary for the canonical vocabulary (verdict vs decision, recommendation vs review).
 
-## What it does
-
-The tool ingests pairs of files: a label image (`.jpg`, `.jpeg`, `.png`, `.webp`) and an application-data JSON file (`.json`) sharing the same filename stem. For each pair it produces two layers of verification results:
-
-- **Layer 1 — Well-formedness.** Checks the label against TTB regulatory requirements that hold regardless of any application data: government warning exact text, mandatory fields present, alcohol-content format, and similar.
-- **Layer 2 — Comparison.** Checks extracted label fields against the producer's application data: brand name match, ABV match, net contents match, and similar.
-
-Files in a pair may arrive in either order. If only the image is supplied, Layer 1 runs and Layer 2 reports `needs_application_data`; if only the JSON is supplied, the job is held until the image arrives.
-
-Submissions can be made by either dropping files into the watched `data/incoming/` directory or by uploading through the browser UI. Both paths produce the same internal representation.
-
 ## Approach
 
 The prototype follows a deliberate source → fact → requirement → architecture pipeline:
@@ -40,6 +29,37 @@ A traced example showing how design decisions are grounded:
 - **Synthesis** — REQ-001..003 + REQ-011 → **UC-001** in `design/use-cases.yaml` (Cockburn-style single user-goal use case with extensions, deliberately *not* a scattershot of UC-001/002/003) → architectural choices in **`ARCHITECTURE.md`** (queue-first UI, watcher with `awaitWriteFinish`, two-layer verifier, paired-input pairing-by-stem, swappable provider).
 
 On the runtime side, two correctness properties worth flagging: the watcher's `INSERT ... ON CONFLICT (stem)` upsert handles chokidar burst-arrivals race-free at the database, and second-pass processing (JSON-after-image, or after a worker restart) rehydrates extracted fields from persisted Layer 1 rows rather than re-calling the model — one Gemini extraction per pair, not two.
+
+## What it looks like
+
+<img width="800" alt="colacop queue view: lifecycle filter tabs, three demo fixtures processed, sample-fixtures download panel, and upload form" src="docs/job-queue.png" />
+
+**Queue view.** The reviewer's working surface — every label submission lives here.
+
+1. Lifecycle filter tabs (All / Processed / Queued / Processing / Awaiting application / Awaiting label / Failed / Decided) and the live job rows. Each row shows stem, current lifecycle, presence of image and application files, and last-updated timestamp.
+2. Sample fixtures panel — six committed pairs ready to download for upload, plus the **Reset demo** button which truncates the database, wipes `data/incoming/`, and reseeds the three demo fixtures through the live Gemini pipeline.
+3. Upload form. Image-only or JSON-only submissions are valid; the system records what's missing and runs whichever layer it can. Local installs can also drop pairs into `data/incoming/` directly.
+
+<img width="800" alt="colacop job detail view: rumble label with extracted fields, Layer 1 and Layer 2 findings with CFR citations, adjudicate panel" src="docs/job.png" />
+
+**Job detail view.** The whole adjudication surface for a single label.
+
+1. Back to queue.
+2. Header: stem name, lifecycle pill, label image, and the producer's application data — the comparison ground-truth.
+3. **Layer 1 — Well-formedness** (label vs regulation). Per-field verdicts and CFR citations: each `pass / fail / needs_review` row points at the exact regulatory clause that produced the verdict, so the specialist can adjudicate without re-deriving the rule.
+4. **Layer 2 — Comparison** (label vs application). Per-field cross-check between the extracted label values and the application's claimed values; verdicts add `needs_application_data` for fields where the JSON didn't supply a value.
+5. **Adjudicate** panel. Per-finding acknowledgment checkboxes, the three label-level decisions (Approve / Reject / Send back), and a free-text note. The label-level decision is the regulatory action of record; per-finding overrides are deliberate future work (see Known limitations).
+
+## What it does
+
+The tool ingests pairs of files: a label image (`.jpg`, `.jpeg`, `.png`, `.webp`) and an application-data JSON file (`.json`) sharing the same filename stem. For each pair it produces two layers of verification results:
+
+- **Layer 1 — Well-formedness.** Checks the label against TTB regulatory requirements that hold regardless of any application data: government warning exact text, mandatory fields present, alcohol-content format, and similar.
+- **Layer 2 — Comparison.** Checks extracted label fields against the producer's application data: brand name match, ABV match, net contents match, and similar.
+
+Files in a pair may arrive in either order. If only the image is supplied, Layer 1 runs and Layer 2 reports `needs_application_data`; if only the JSON is supplied, the job is held until the image arrives.
+
+Submissions can be made by either dropping files into the watched `data/incoming/` directory or by uploading through the browser UI. Both paths produce the same internal representation.
 
 ## Tools used
 
