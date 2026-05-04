@@ -39,18 +39,16 @@ Branch `task/64v-readme-final`, claim cc-64v.
 - [x] **Provenance narrative** per G7 (inline, real S/F/REQ/UC IDs in the Approach Provenance walk subsection).
 - [x] Pointers: integrated inline rather than as a standalone section — UC-001 in Provenance walk, ARCHITECTURE.md § Tool Positioning & Vocabulary in stance paragraph, repo layout section retained for top-level files. Standalone Pointers section judged redundant.
 - [x] "How the live deployment is updated" — tightened: dropped apologetic preamble, collapsed idempotency notes, kept agave-as-known-issue.
-- [ ] Screenshot embedding (waiting on Chair's CleanShot output).
-- [ ] Hold cc-64v open until phases 3 + 4 complete.
+- [x] Screenshot embedding done with numbered tours.
+- [x] README reordered per Chair: stance/intro → Approach → screenshots → What it does → mechanics. Differentiator before mechanism.
+- [ ] Hold cc-64v open until phase 4 complete.
 
 ## Phase 3 — Screenshots (gated on phase 1 live)
 
-- [ ] Click **Reset demo** on live for reproducible state.
-- [ ] Capture queue (post-Reset).
-- [ ] Capture job detail (one with `needs_review` to show the framing in action).
-- [ ] Annotate (Skitch, ≤3 callouts each) if time permits; otherwise plain.
-- [ ] Save to `docs/screenshots/`.
-- [ ] Wire `![queue](docs/screenshots/queue.png)` + `![job-detail](docs/screenshots/job-detail.png)` into README; numbered prose tour beside each if annotated.
-- [ ] Verify rendering on GitHub.
+- [x] Captured both screenshots (annotated with red rectangles + numbered callouts in CleanShot X).
+- [x] Saved to `docs/job-queue.png` (3 callouts) and `docs/job.png` (5 callouts) — kept under `docs/` rather than `docs/screenshots/`, fewer indirection.
+- [x] Embedded into README under new `## What it looks like` section between Approach and What it does, with numbered tour prose under each.
+- [ ] Verify rendering on GitHub once pushed.
 
 ## Phase 4 — Repo-wide documentation pass
 
