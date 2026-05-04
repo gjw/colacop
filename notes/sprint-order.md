@@ -1,100 +1,52 @@
 # Sprint Order
 
-Updated Monday 2026-05-04 by Tower (post cc-cm5 / cc-1s8 / cc-hy3 / cc-wrn merge).
-Submission window open. Plan is now down to one mandatory bead and a handful of
-polish-or-defer choices.
+Updated Monday 2026-05-04 by Tower (final-final). Open queue down to 4 beads.
 
 ## Where we are
 
 - **Today:** Monday 2026-05-04. Submission window open.
-- **Closed since the morning replan:**
-  - cc-2sa — live-reseed 3 demo fixtures on deploy and on Reset (shipped as live-reseed,
-    not pre-extracted SQL — see "Implication for cc-lm6" below).
-  - cc-cm5 — log HITL-decision-vs-tool-recommendation overrides as training-data signal.
-  - cc-1s8 — race-free upsert (`INSERT ... ON CONFLICT (stem) DO UPDATE`).
-  - cc-hy3 — rehydrate ExtractedFields from `layer1_results` rows on second-pass L2;
-    halves Gemini cost on watcher path; **subsumes cc-uhc** (cross-restart cache case
-    is now covered because rehydration reads from the database, not in-memory state).
-  - cc-wrn — link CFR citations in verdict messages to ecfr.gov.
-- **Closed during this final review:**
-  - cc-uhc — closed as subsumed by cc-hy3.
-  - cc-hfv — closed; `docs/handoff.md` moved to `docs/historical/` with a "superseded"
-    preamble.
+- **Closed in this final review pass:**
+  - cc-htd — deferred indefinitely; 6 real bottles + cc-2sa pre-seed + reviewer mismatched-pair uploads cover the failure-mode story without dedicated edge fixtures.
+  - cc-fsa — subsumed by cc-7v3 verbatim prompt (proof tail retained).
+  - cc-lm6 — smoke confirmed: 3-fixture reset stays under Gemini's 25 RPM burst tolerance. Documented in README; backoff deferred until a real load pattern (e.g. multi-select upload) requires it.
+  - cc-9wh — not building multi-select. Replaced by cc-ky5 (one-line UI hint pointing local reviewers at `data/incoming/`).
+  - cc-55c — effectively done. JobDetailView L2 rows already render field/verdict/message/extracted/application inline (App.tsx ~649). The literal table layout the bead asked for is a CSS restructure of identical data; current card form is more readable.
+- **Earlier in the day:** cc-uhc closed (subsumed by cc-hy3); cc-hfv closed (handoff.md moved to docs/historical/).
 
-## Implication for cc-lm6
-
-cc-2sa shipped as live-reseed: Reset clears state, drops 3 fixture pairs into the
-watcher path, and Gemini extracts. This is a feature (the reviewer watches real
-extraction in real time after a reset). But it means **the Reset button now triggers
-3 simultaneous Gemini calls.** Original cc-lm6 was filed when 6 simultaneous calls
-hit a 429; 3 is well under the 25 RPM cap and may be safe in practice. cc-lm6's
-status depends on smoke-test outcome:
-
-- **Smoke 5 resets in a row.** If any Reset 429s a job, ship cc-lm6 (~30 min).
-- **If all 5 are clean,** demote cc-lm6 to P2 README known-limitation.
-
-## Tier ranking (final)
+## The remaining 4 beads
 
 ### Tier 1 — must ship before submit
 
 | ID | P | Why |
 |---|---|---|
-| `cc-64v` | 1 | README polish + screenshots + framing throughout + known-limitations inventory. Mandatory final deliverable. ~1-2h Tower/Chair. |
+| `cc-64v` | 1 | README polish + screenshots + framing throughout + known-limitations inventory + local-setup instructions (including the watcher-drop hint cc-ky5 introduces). Mandatory final deliverable. ~1-2h Tower/Chair. |
 
-### Tier 2 — strong polish, do before README
-
-| ID | P | Why |
-|---|---|---|
-| `cc-htd` | 1 | 2-3 high-leverage edge fixtures (front-only crop → missing-warning L1; lowercase warning → warning-violation L1; bad-photo → low-confidence demo, especially relevant post-cc-ye9). All derivable from existing bottles via crop/edit. ~1-2h Chair image work. Sharpens the failure-mode story. |
-| `cc-fsa` | 2 | Smoke-verify (5 min): open cointreau / rumple post-redeploy, confirm `alcoholContent` extracted_value contains `(80 PROOF)` / `(100 PROOF)`. Likely already fixed by cc-7v3 verbatim prompt. Close or document. |
-| `cc-lm6` | 1 | Smoke-conditional (see "Implication for cc-lm6" above). Smoke 5 resets; ship if any 429, otherwise demote to README. |
-
-### Tier 3 — stretch (only if Tier 2 lands and time remains)
+### Tier 2 — small additions (do alongside or before README)
 
 | ID | P | Why |
 |---|---|---|
-| `cc-9wh` | 2 | Multi-select upload. Reviewer convenience for batch-pair drops. ~45 min. **Ship only with cc-lm6** — multi-select makes 429 user-visible. |
-| `cc-55c` | 2 | L2 column-table polish. cc-o1k already exposed extracted-vs-application data per row; this is layout. ~30-45 min. |
+| `cc-ky5` | 2 | One-line UI hint: "Running locally? You can also drop pairs into `data/incoming/` — the watcher picks them up automatically." ~10 min Trench. README cc-64v references the same path. |
 
-### Tier 4 — README known-limitations (no code change)
+### Tier 3 — close after pre-submit deploy verification
 
-| ID | P | Documented as |
+These two are documented as "no fix, defensive design only." They close once the
+deploy + reboot smoke passes; if either smoke step fails, address before submit.
+
+| ID | P | Closure gate |
 |---|---|---|
-| `cc-egk` | 2 | Worker single-writer guarantee — PM2 enforces in production; dev-only concern. |
-| `cc-g87` | 2 | Stub-provider fallback has no in-UI cue; only triggers on misconfigured GEMINI_API_KEY. Live URL has the key set. |
-| `cc-lm6` | 1 → 2 | If smoke shows reset is reliable, document as: "high-burst seed of 6+ simultaneous extractions can hit Gemini 25 RPM; production load is one upload at a time, and Reset handles 3 within burst tolerance." |
+| `cc-egk` | 2 | PM2 ecosystem manages a single worker process. **Verify:** ssh to box, `pm2 stop all && pm2 start ecosystem.config.cjs`, observe both web and worker come back up cleanly with no double-worker race. **Or simpler:** `pm2 reload ecosystem.config.cjs` and confirm `pm2 list` shows exactly one of each. Then close as "production single-writer enforced by PM2; documented." |
+| `cc-g87` | 2 | Live URL must have `GEMINI_API_KEY` set so the worker uses real Gemini, not the stub fallback that returns merlot for everything. **Verify:** ssh to box, check `/opt/colacop/.env.production` (or wherever the env lives) contains `GEMINI_API_KEY=...`; check pm2 worker logs for `[worker] provider: GeminiLabelProvider` (not `StubLabelProvider`); upload a known fixture and confirm the extracted values match the bottle, not the merlot stub. Then close as "production env verified; documented." |
 
-## Monday sequence
+## Pre-submit verification checklist (Chair)
 
 ```
-NOW       redeploy live URL to pick up cc-cm5 / cc-1s8 / cc-hy3 / cc-wrn / cc-2sa.
-SMOKE     localhost first, then live URL:
-            - All 6 bottles produce sensible verdicts (cc-0ue / cc-ye9 / cc-srj).
-            - Decision UI works end-to-end with adjudication framing (cc-syy).
-            - Override badge appears on diverged decisions (cc-cm5).
-            - CFR citations are clickable and resolve (cc-wrn).
-            - Reset 5x in a row; check for 429 (cc-lm6 decision gate).
-            - cc-fsa verify: cointreau / rumple ABV extracted_value includes proof tail.
-NEXT      cc-htd — 2-3 edge fixtures (Chair image work, ~1-2h).
-THEN      cc-64v — README polish + screenshots + framing + known-limits (~1-2h).
-LATE      Final smoke on live URL; submit.
+1. Deploy: ssh + git pull + npm ci + npm run migrate + npm run build + pm2 reload.
+2. Verify worker provider line in PM2 logs reads GeminiLabelProvider (closes cc-g87).
+3. pm2 reload (or stop/start); verify single web + single worker (closes cc-egk).
+4. Smoke live URL: 6 bottles render, decisions land, override badge appears,
+   CFR citations resolve, reset works, fixtures download works, upload works.
+5. Submit.
 ```
-
-## Cuts available if Monday slips
-
-In rough order of preference:
-
-1. **Skip cc-htd edge fixtures.** The 6 real bottles + cc-2sa pre-seed +
-   reviewer-driven mismatched-pair uploads already cover the failure-mode story
-   end-to-end. Edge fixtures sharpen but aren't required.
-2. **Skip cc-9wh + cc-55c.** Tier 3 by definition.
-3. **Skip cc-lm6.** If smoke is reliable, README documents the burst limit.
-
-If all three cuts apply, the demo is still credible: live URL with seeded queue,
-decision UI with adjudication framing, override-detection signal, real Gemini
-extraction, regulation-grounded verdicts, transparent extracted values, clickable
-CFR citations, reviewer-driven upload + mismatched-pair failure demo,
-README that frames the tool correctly and enumerates known limits.
 
 ## Decisions locked across all sessions
 
@@ -106,22 +58,21 @@ README that frames the tool correctly and enumerates known limits.
 - **TTB regulatory grounding:** F-047 / F-048 / F-051-054 / F-052 / F-056 / F-057.
 - **Verdict semantics:** Layer 1 verdict reflects the rule outcome only; extraction_confidence is a parallel signal (cc-ye9 closed).
 - **Decision step:** approve / reject / send_back + optional note; one decision per job; final for the prototype (cc-syy closed). Override-detection logs HITL-vs-tool divergence (cc-cm5 closed).
-- **Per-finding scope:** Option A — label-level decisions only, no per-finding overrides. cc-q25 closed.
-- **Reviewer onboarding:** populated queue on landing via live-reseed of 3 demo fixtures (cc-2sa); upload-driven workflow with downloadable fixtures (cc-1c5); reset-to-demo as discreet secondary affordance (cc-1c5 / cc-idm).
+- **Per-finding scope:** Option A — label-level decisions only, no per-finding overrides (cc-q25 closed).
+- **Reviewer onboarding:** populated queue on landing via live-reseed of 3 demo fixtures (cc-2sa); upload-driven workflow with downloadable fixtures (cc-1c5); reset-to-demo as discreet secondary affordance (cc-1c5 / cc-idm); local-installation watcher-drop hint (cc-ky5).
 - **Verbatim Gemini prompt:** cc-7v3 chose verbatim-extraction. Verification logic absorbs common verbatim patterns per cc-0ue.
 - **Tool positioning:** agent-assisted COLA pre-review, not COLA review. Tool = recommendation/screening; HITL = reviewer/adjudicator. ARCHITECTURE.md "Tool Positioning & Vocabulary" is canonical.
-- **Citations:** verdict messages link CFR citations to ecfr.gov (cc-wrn).
-- **Known-limitation pattern:** deferred bugs (cc-egk, cc-g87, cc-lm6 if smoke-clean) are transparently documented in README rather than fixed. cc-64v carries this.
+- **Citations:** verdict messages link CFR citations to ecfr.gov (cc-wrn closed).
+- **Multi-select upload:** explicitly not implemented; reviewers wanting batch ingestion use the local watcher-drop path. The browser upload form remains one-pair-at-a-time (cc-9wh closed).
+- **Edge fixtures:** explicitly deferred; the 6 real bottles + reviewer-driven mismatched-pair uploads cover the failure-mode story (cc-htd closed).
+- **Gemini 429 backoff:** explicitly deferred; reset's 3-fixture burst stays under tolerance, no production load pattern triggers it. Documented (cc-lm6 closed).
+- **Known-limitation pattern:** cc-egk and cc-g87 are documented in README, not fixed; closure gated on the pre-submit deploy verification.
 
 ## Open issue inventory
 
 | ID | P | Type | Status | Notes |
 |---|---|---|---|---|
 | cc-64v | 1 | task | open | TIER 1 FINAL — README. |
-| cc-htd | 1 | task | open | TIER 2 — 2-3 edge fixtures. |
-| cc-lm6 | 1 | bug | open | TIER 2 — smoke-conditional; ship or document. |
-| cc-fsa | 2 | task | open | TIER 2 — smoke-verify and close. |
-| cc-9wh | 2 | task | open | TIER 3 — multi-upload (with cc-lm6 only). |
-| cc-55c | 2 | task | open | TIER 3 — L2 column polish. |
-| cc-egk | 2 | chore | open | TIER 4 — README known-limitation. |
-| cc-g87 | 2 | bug | open | TIER 4 — README known-limitation. |
+| cc-ky5 | 2 | task | open | TIER 2 — UI watcher-path hint (replaces cc-9wh). |
+| cc-egk | 2 | chore | open | TIER 3 — close after PM2 single-writer verification. |
+| cc-g87 | 2 | bug | open | TIER 3 — close after live-env Gemini-key verification. |
