@@ -119,14 +119,6 @@ function checkAbvFormat(field: ExtractedField): Layer1FieldResult {
       "Alcohol content does not conform to 27 CFR 4.36 format (e.g., 'Alcohol 13.5% by volume' or '13.5% alc/vol').",
     );
   }
-  if (field.confidence === "low") {
-    return l1(
-      "alcoholContent",
-      field,
-      "needs_review",
-      `Parsed as ${abv}% but extraction confidence is low.`,
-    );
-  }
   return l1("alcoholContent", field, "pass", `Parsed as ${abv}% ABV.`);
 }
 

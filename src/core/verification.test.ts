@@ -126,7 +126,12 @@ describe("runLayer1", () => {
     expect(brand?.verdict).toBe("fail");
   });
 
-  it("flags low extraction confidence as needs_review", () => {
+  // Required-field presence checks deliberately keep the low-confidence →
+  // needs_review override (cc-ye9 design review): the presence rule
+  // ("non-empty") is too weak to overrule the model's own uncertainty about
+  // what it read. Only checkAbvFormat decouples, because parseAbv provides
+  // independent corroboration that the value is well-formed.
+  it("flags low extraction confidence as needs_review on required fields", () => {
     const r = runLayer1({
       ...baseExtracted,
       brandName: { value: "Stone's Throw", confidence: "low", confidenceRaw: 0.3 },
@@ -134,6 +139,16 @@ describe("runLayer1", () => {
     const brand = r.find((x) => x.fieldName === "brandName");
     expect(brand?.verdict).toBe("needs_review");
     expect(brand?.extractionConfidence).toBe("low");
+  });
+
+  it("passes parseable ABV regardless of low extraction confidence (cc-ye9)", () => {
+    const r = runLayer1({
+      ...baseExtracted,
+      alcoholContent: { value: "13.5% alc/vol", confidence: "low", confidenceRaw: 0.3 },
+    });
+    const abv = r.find((x) => x.fieldName === "alcoholContent");
+    expect(abv?.verdict).toBe("pass");
+    expect(abv?.extractionConfidence).toBe("low");
   });
 
   it("fails on malformed ABV", () => {
