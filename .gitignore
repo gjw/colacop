@@ -30,3 +30,6 @@ data/failed/*
 fixtures/raw/*
 !fixtures/raw/README.md
 !fixtures/raw/*.extraction.json
+
+# Session-tracking working files (not deliverables)
+final-push.md

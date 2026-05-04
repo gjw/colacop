@@ -202,7 +202,7 @@ notes/
   sprint-order.md       working order through the deadline
   friction.md           friction log for the discovery pipeline
 docs/
-  handoff.md            continuity notes for the next collaborator
+  historical/           early planning notes + a mid-build audit, both superseded
 src/                    application code
   server/               Express API
   worker/               Chokidar watcher + processing
