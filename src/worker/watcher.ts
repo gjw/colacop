@@ -79,11 +79,19 @@ export function startWatcher(
     depth: 0,
   });
 
-  watcher.on("add", (filePath) => {
-    handleFile(db, provider, filePath).catch((err) => {
+  // Subscribe to both add and change. Chokidar with awaitWriteFinish can
+  // emit `change` instead of `add` when a path is unlinked and recreated
+  // within the stability window — which is exactly what the Reset demo
+  // flow does (server unlinks files, then immediately copyFile's fixtures
+  // back). handleFile is idempotent (atomic upsert + no-op detection),
+  // so handling both events is safe.
+  const onFile = (filePath: string): void => {
+    handleFile(db, provider, filePath).catch((err: unknown) => {
       console.error("[watcher] handleFile failed:", err);
     });
-  });
+  };
+  watcher.on("add", onFile);
+  watcher.on("change", onFile);
 
   watcher.on("error", (err) => {
     console.error("[watcher] error:", err);
