@@ -160,10 +160,26 @@ function l2(
   return { fieldName, verdict, message, extractedValue, applicationValue };
 }
 
+function missingApp(
+  fieldName: string,
+  extractedValue: string | null,
+): Layer2FieldResult {
+  return l2(
+    fieldName,
+    "needs_application_data",
+    "Field not provided in application data.",
+    extractedValue,
+    null,
+  );
+}
+
 function compareBrand(
   extracted: ExtractedField,
-  application: string,
+  application: string | undefined,
 ): Layer2FieldResult {
+  if (application === undefined) {
+    return missingApp("brandName", extracted.value);
+  }
   if (extracted.value === application) {
     return l2(
       "brandName",
@@ -193,8 +209,11 @@ function compareBrand(
 
 function compareAbv(
   extracted: ExtractedField,
-  application: number,
+  application: number | undefined,
 ): Layer2FieldResult {
+  if (application === undefined) {
+    return missingApp("alcoholContent", extracted.value);
+  }
   const appStr = String(application);
   const labelAbv = parseAbv(extracted.value);
   if (labelAbv === null) {
@@ -229,9 +248,12 @@ function compareAbv(
 function compareString(
   fieldName: string,
   extracted: ExtractedField,
-  application: string,
+  application: string | undefined,
   options?: { extractedContainingAppPasses?: boolean },
 ): Layer2FieldResult {
+  if (application === undefined) {
+    return missingApp(fieldName, extracted.value);
+  }
   const a = extracted.value.trim().toLowerCase();
   const b = application.trim().toLowerCase();
   if (a === b) {
@@ -309,15 +331,7 @@ export function runLayer2(
   const results: Layer2FieldResult[] = [
     compareBrand(extracted.brandName, application.brandName),
     compareString("classType", extracted.classType, application.classType),
-    application.alcoholContent !== undefined
-      ? compareAbv(extracted.alcoholContent, application.alcoholContent)
-      : l2(
-          "alcoholContent",
-          "needs_application_data",
-          "Alcohol content not declared in application.",
-          extracted.alcoholContent.value,
-          null,
-        ),
+    compareAbv(extracted.alcoholContent, application.alcoholContent),
     compareString("netContents", extracted.netContents, application.netContents, {
       extractedContainingAppPasses: true,
     }),

@@ -1,12 +1,16 @@
 import { z } from "zod";
 
+// All fields optional: the schema describes what application JSON CAN
+// contain, not what it MUST contain. Missing fields are reported per-field
+// as needs_application_data in Layer 2 (UC-001.4e). Malformed JSON still
+// hard-fails at parse time.
 export const applicationDataSchema = z.object({
-  brandName: z.string().min(1),
-  classType: z.string().min(1),
+  brandName: z.string().min(1).optional(),
+  classType: z.string().min(1).optional(),
   alcoholContent: z.number().nonnegative().optional(),
-  netContents: z.string().min(1),
-  producerName: z.string().min(1),
-  producerAddress: z.string().min(1),
+  netContents: z.string().min(1).optional(),
+  producerName: z.string().min(1).optional(),
+  producerAddress: z.string().min(1).optional(),
   countryOfOrigin: z.string().min(1).optional(),
 });
 

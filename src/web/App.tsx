@@ -135,17 +135,17 @@ function ApplicationPanel({
     );
   }
   const rows: Array<[string, string]> = [
-    ["Brand", application.brandName],
-    ["Class/type", application.classType],
+    ["Brand", application.brandName ?? "—"],
+    ["Class/type", application.classType ?? "—"],
     [
       "ABV",
       application.alcoholContent !== undefined
         ? `${application.alcoholContent}%`
         : "—",
     ],
-    ["Net contents", application.netContents],
-    ["Producer", application.producerName],
-    ["Address", application.producerAddress],
+    ["Net contents", application.netContents ?? "—"],
+    ["Producer", application.producerName ?? "—"],
+    ["Address", application.producerAddress ?? "—"],
     ["Country", application.countryOfOrigin ?? "—"],
   ];
   return (

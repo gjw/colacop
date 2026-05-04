@@ -8,6 +8,7 @@ import {
   runLayer2,
   verifyLabel,
 } from "./verification.js";
+import { applicationDataSchema } from "./schemas.js";
 import type { ApplicationData, ExtractedFields } from "./schemas.js";
 
 const hi = (value: string) => ({
@@ -310,6 +311,61 @@ describe("runLayer2 — countryOfOrigin", () => {
     const r = runLayer2(baseExtracted, { ...baseApp, countryOfOrigin: "France" });
     const c = r.find((x) => x.fieldName === "countryOfOrigin");
     expect(c?.verdict).toBe("needs_review");
+  });
+});
+
+describe("runLayer2 — partial application data (cc-srj / UC-001.4e)", () => {
+  it("reports needs_application_data per missing field; compares present ones normally", () => {
+    const partial: ApplicationData = {
+      brandName: baseApp.brandName,
+      classType: baseApp.classType,
+      alcoholContent: baseApp.alcoholContent,
+      netContents: baseApp.netContents,
+      producerName: baseApp.producerName,
+      // producerAddress omitted
+    };
+    const r = runLayer2(baseExtracted, partial);
+    const addr = r.find((x) => x.fieldName === "producerAddress");
+    expect(addr?.verdict).toBe("needs_application_data");
+    expect(addr?.extractedValue).toBe(baseExtracted.producerAddress.value);
+    expect(addr?.applicationValue).toBe(null);
+    const brand = r.find((x) => x.fieldName === "brandName");
+    expect(brand?.verdict).toBe("pass");
+  });
+
+  it("handles multiple missing fields independently", () => {
+    const partial: ApplicationData = {
+      brandName: baseApp.brandName,
+      netContents: baseApp.netContents,
+      // classType, alcoholContent, producerName, producerAddress omitted
+    };
+    const r = runLayer2(baseExtracted, partial);
+    expect(r.find((x) => x.fieldName === "classType")?.verdict).toBe(
+      "needs_application_data",
+    );
+    expect(r.find((x) => x.fieldName === "alcoholContent")?.verdict).toBe(
+      "needs_application_data",
+    );
+    expect(r.find((x) => x.fieldName === "producerName")?.verdict).toBe(
+      "needs_application_data",
+    );
+    expect(r.find((x) => x.fieldName === "producerAddress")?.verdict).toBe(
+      "needs_application_data",
+    );
+    expect(r.find((x) => x.fieldName === "brandName")?.verdict).toBe("pass");
+    expect(r.find((x) => x.fieldName === "netContents")?.verdict).toBe("pass");
+  });
+
+  it("schema accepts JSON missing previously-required fields without throwing", () => {
+    expect(() =>
+      applicationDataSchema.parse({ brandName: "Stone's Throw" }),
+    ).not.toThrow();
+  });
+
+  it("schema still rejects malformed JSON shape", () => {
+    expect(() => applicationDataSchema.parse("not an object")).toThrow();
+    expect(() => applicationDataSchema.parse({ brandName: "" })).toThrow();
+    expect(() => applicationDataSchema.parse({ alcoholContent: -5 })).toThrow();
   });
 });
 
