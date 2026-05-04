@@ -6,11 +6,14 @@ import { runLayer1, runLayer2 } from "../core/verification.js";
 import type { LabelProvider } from "../core/providers/types.js";
 import {
   getJobByStem,
+  getLayer1Rows,
+  getLayer2Rows,
   hasLayer1,
   persistLayer1,
   persistLayer2,
   setLifecycle,
 } from "./repo.js";
+import { rehydrateExtractedFields } from "./rehydrate.js";
 
 async function loadApplication(
   applicationPath: string,
@@ -55,7 +58,9 @@ export async function processStem(
       }
 
       if (job.application_path !== null) {
-        const extracted = await provider.analyzeLabel(job.image_path);
+        const layer1Rows = await getLayer1Rows(db, job.id);
+        const layer2Rows = await getLayer2Rows(db, job.id);
+        const extracted = rehydrateExtractedFields(layer1Rows, layer2Rows);
         const application = await loadApplication(job.application_path);
         const layer2 = runLayer2(extracted, application);
         await persistLayer2(db, job.id, layer2);

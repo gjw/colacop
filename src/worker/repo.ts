@@ -1,7 +1,9 @@
-import type { Kysely } from "kysely";
+import type { Kysely, Selectable } from "kysely";
 import { sql } from "kysely";
 import type {
   Database,
+  Layer1ResultsTable,
+  Layer2ResultsTable,
   Lifecycle,
 } from "../db/schema.js";
 import type {
@@ -38,22 +40,7 @@ export async function upsertJob(
     lifecycle: Lifecycle;
   },
 ): Promise<JobRow> {
-  const existing = await getJobByStem(db, args.stem);
-  if (existing) {
-    const updated = await db
-      .updateTable("jobs")
-      .set({
-        image_path: args.imagePath,
-        application_path: args.applicationPath,
-        lifecycle: args.lifecycle,
-        updated_at: sql`now()`,
-      })
-      .where("stem", "=", args.stem)
-      .returningAll()
-      .executeTakeFirstOrThrow();
-    return updated;
-  }
-  const inserted = await db
+  return db
     .insertInto("jobs")
     .values({
       stem: args.stem,
@@ -61,9 +48,16 @@ export async function upsertJob(
       application_path: args.applicationPath,
       lifecycle: args.lifecycle,
     })
+    .onConflict((oc) =>
+      oc.column("stem").doUpdateSet({
+        image_path: args.imagePath,
+        application_path: args.applicationPath,
+        lifecycle: args.lifecycle,
+        updated_at: sql`now()`,
+      }),
+    )
     .returningAll()
     .executeTakeFirstOrThrow();
-  return inserted;
 }
 
 export async function setLifecycle(
@@ -138,4 +132,26 @@ export async function hasLayer1(
     .where("job_id", "=", jobId)
     .executeTakeFirst();
   return row !== undefined && Number(row.c) > 0;
+}
+
+export async function getLayer1Rows(
+  db: Kysely<Database>,
+  jobId: number,
+): Promise<Selectable<Layer1ResultsTable>[]> {
+  return db
+    .selectFrom("layer1_results")
+    .selectAll()
+    .where("job_id", "=", jobId)
+    .execute();
+}
+
+export async function getLayer2Rows(
+  db: Kysely<Database>,
+  jobId: number,
+): Promise<Selectable<Layer2ResultsTable>[]> {
+  return db
+    .selectFrom("layer2_results")
+    .selectAll()
+    .where("job_id", "=", jobId)
+    .execute();
 }
