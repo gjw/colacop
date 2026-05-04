@@ -1,10 +1,10 @@
-# colacop — AI-Powered Alcohol Label Verification Prototype
+# colacop — agent-assisted TTB label pre-review
 
-A take-home prototype for the TTB IT Specialist position. Verifies that an alcohol label image matches its corresponding application data, and that the label itself meets TTB regulatory requirements.
+> **Live demo:** [https://colacop.foramerica.dev](https://colacop.foramerica.dev) — no login required.
 
-## Live deployment
+A take-home prototype for the TTB IT Specialist position. The tool reads alcohol-label images, screens them against TTB regulation and the producer's application data, and produces a structured set of findings — each with a CFR citation — that a TTB specialist can accept, override, or amend.
 
-**https://colacop.foramerica.dev** — hosted on a Linode VPS in US Dallas TX. No login required for the prototype.
+This is **agent-assisted pre-review**, not automated review. The regulatory action of record (approve / reject / send back) is the specialist's, exercising delegated authority. The tool's job is not to be right — it is to be *right about why it might be wrong*. A finding like "alcohol content statement may violate 27 CFR 4.36(b)(1) because [reason]; confidence medium" lets a specialist adjudicate in seconds; "rejected" forces them to redo the work. When the specialist's adjudication diverges from the tool's recommendation, that's surfaced as an **override** — itself valuable signal. See `ARCHITECTURE.md` § Tool Positioning & Vocabulary for the canonical vocabulary (verdict vs decision, recommendation vs review).
 
 ## What it does
 
@@ -29,6 +29,15 @@ The prototype follows a deliberate source → fact → requirement → architect
 - Friction encountered while building this pipeline is logged in `notes/friction.md`.
 
 This level of process is deliberately heavier than the assignment requires; it is part of the implementer's submission, demonstrating how requirements traceability informs design.
+
+### Provenance walk
+
+A traced example showing how design decisions are grounded:
+
+- **Workflow shape** — S-001 (Deputy Director of Label Compliance interview) → F-001 (≈150K reviews/year), F-004 (agents review by comparing label artwork to application data), F-006 (5–10 min per review) → REQ-001 (fast single-label review), REQ-002 (low-friction UX), REQ-003 (asynchronous processing — F-009 / F-010 record a prior synchronous vendor pilot that failed because agents had to wait interactively).
+- **Two-layer verification** — S-006 + S-007 (TTB regulatory sources for the government warning text and mandatory label fields) → F-045 → REQ-011: Layer 1 well-formedness (regulation-driven) and Layer 2 comparison (label-vs-application).
+- **Provider boundary** — S-005 + F-042 (Anthropic supply-chain / procurement risk for federal agencies; the Defense Secretary designated Anthropic as a supply-chain risk) → an app-owned `LabelProvider` interface in `core/providers/`, with Google Gemini 3.1 Pro as the first concrete implementation and Vertex AI Government (FedRAMP High) as the production swap path.
+- **Synthesis** — REQ-001..003 + REQ-011 → **UC-001** in `design/use-cases.yaml` (Cockburn-style single user-goal use case with extensions, deliberately *not* a scattershot of UC-001/002/003) → architectural choices in **`ARCHITECTURE.md`** (queue-first UI, watcher with `awaitWriteFinish`, two-layer verifier, paired-input pairing-by-stem, swappable provider).
 
 On the runtime side, two correctness properties worth flagging: the watcher's `INSERT ... ON CONFLICT (stem)` upsert handles chokidar burst-arrivals race-free at the database, and second-pass processing (JSON-after-image, or after a worker restart) rehydrates extracted fields from persisted Layer 1 rows rather than re-calling the model — one Gemini extraction per pair, not two.
 
@@ -107,26 +116,24 @@ Within a couple of seconds the worker logs that it's processing the pair, and th
 
 ## How the live deployment is updated
 
-For reviewers who care about the deploy story:
-
 ```sh
 ssh root@colacop.foramerica.dev
 cd ~/colacop
 git pull
 npm ci
 npm run migrate
-npm run seed:demo       # copies agave/cointreau/rumble into data/incoming/
+npm run seed:demo
 npm run build
 pm2 reload ecosystem.config.cjs
 ```
 
-This is intentionally manual rather than CI/CD-driven; for a 3-day prototype the iteration speed matters more than the deploy ceremony.
+Manual deploy by design — for a short prototype build, iteration speed beats CI/CD ceremony.
 
-`seed:demo` drops three fixture pairs into `data/incoming/` so the watcher ingests them through the live Gemini pipeline on startup — reviewers' first page load shows a populated queue with real extraction results, not snapshotted DB rows. It is idempotent (skips files already present in `data/incoming/`); the worker's restart-idempotency check additionally avoids re-running Gemini against already-processed pairs across deploys.
+`seed:demo` copies agave / cointreau / rumble into `data/incoming/` so the watcher ingests them through the live Gemini pipeline on every redeploy: a reviewer's first page load shows a populated queue with real extraction results, not snapshotted DB rows. The seed is idempotent (skips files already present), and the worker rehydrates extracted fields from persisted Layer 1 rows on restart — neither path re-bills Gemini for already-processed pairs.
 
-**Note on the demo seed:** the chosen trio is deliberate. Cointreau and rumble pass cleanly and demonstrate the happy path. **Agave is included specifically because it surfaces a known issue** — the `classType` field is unstable under the verbatim-extraction prompt, and you may see it land in `needs_review` or with a `low` confidence badge. This is intentional: the demo shows the system flagging real problems on first paint rather than rubber-stamping every label. The other three fixtures (fireball, rumple, shinok) are not seeded but remain available in the in-app fixtures panel for manual upload to exercise the live ingestion path.
+**Why those three fixtures, and why agave specifically:** Cointreau and rumble pass cleanly and demonstrate the happy path. **Agave is included because it surfaces a known issue** — the `classType` field is unstable under the verbatim-extraction prompt, so you may see it land in `needs_review` or with a `low` confidence badge. That is intentional: the demo flags real problems on first paint rather than rubber-stamping every label. Three more fixtures (fireball, rumple, shinok) remain available in the in-app fixtures panel for manual upload.
 
-Clicking **Reset demo** in the UI runs the same flow: it truncates job/result/decision rows, deletes everything in `data/incoming/`, then reseeds the same three fixtures. Each Reset triggers three live Gemini extractions.
+Clicking **Reset demo** in the UI re-runs this flow end-to-end: it truncates the job / result / decision tables, deletes the contents of `data/incoming/`, then reseeds the same three fixtures. Each Reset triggers three live Gemini extractions.
 
 ## Prototype scope
 
