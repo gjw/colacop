@@ -369,10 +369,11 @@ Manual SSH + git pull + build + reload. Chosen over CI/CD for speed-of-iteration
 
 ```sh
 ssh root@linode43393.foramerica.dev
-cd /opt/colacop
+cd ~/colacop
 git pull
 npm ci
 npm run migrate
+npm run seed:demo
 npm run build
 pm2 reload ecosystem.config.cjs
 ```

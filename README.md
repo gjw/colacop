@@ -30,6 +30,8 @@ The prototype follows a deliberate source → fact → requirement → architect
 
 This level of process is deliberately heavier than the assignment requires; it is part of the implementer's submission, demonstrating how requirements traceability informs design.
 
+On the runtime side, two correctness properties worth flagging: the watcher's `INSERT ... ON CONFLICT (stem)` upsert handles chokidar burst-arrivals race-free at the database, and second-pass processing (JSON-after-image, or after a worker restart) rehydrates extracted fields from persisted Layer 1 rows rather than re-calling the model — one Gemini extraction per pair, not two.
+
 ## Tools used
 
 - **Node.js 24.x** (TypeScript, strict mode).
@@ -45,8 +47,12 @@ Full stack rationale and provider choices are in `ARCHITECTURE.md`.
 
 ## Running locally
 
+The app runs as three independent long-lived processes — the API, the watcher worker, and the Vite dev server — so local development uses three terminals. (The deployed VPS uses PM2 to manage the same processes; locally we keep it simple.)
+
+### One-time setup
+
 ```sh
-# Install Node 24.x via nodenv (uses .node-version)
+# Install Node 24.x via nodenv (uses .node-version → 24.14.0)
 nodenv install
 
 # Install dependencies
@@ -54,21 +60,50 @@ npm install
 
 # Configure env (DATABASE_URL, ports, GEMINI_API_KEY)
 cp .env.example .env
-# then edit .env — at minimum set GEMINI_API_KEY for real label extraction
+# then edit .env — at minimum set GEMINI_API_KEY for real label extraction.
+# Without it the worker silently falls back to a stub provider that returns
+# canned fixture data — check the worker log for "[worker] provider: ...".
 
 # Start Postgres
 docker compose up -d db
+# If port 5432 is already in use on your machine, set POSTGRES_PORT=5433
+# (or similar) in .env and update DATABASE_URL to match.
 
 # Run migrations
 npm run migrate
 
-# Start the dev server (web + worker)
-npm run dev
+# Optional: seed the demo fixtures
+npm run seed:demo   # copies agave / cointreau / rumble into data/incoming/
 ```
 
-Then open the URL printed by Vite. Drop label/JSON pairs into `data/incoming/` to exercise the watcher path, or use the browser upload UI.
+### Run
 
-Real label extraction requires `GEMINI_API_KEY` in your environment; without it the worker falls back to a stub provider that returns canned fixture data.
+In three separate terminals:
+
+```sh
+# terminal 1 — API
+npm run dev:server
+
+# terminal 2 — watcher worker
+npm run dev:worker
+
+# terminal 3 — Vite dev server
+npm run dev:web
+```
+
+Run only **one** worker. Single-writer is enforced operationally (PM2 in production, your discipline locally); two workers against the same database and `INCOMING_DIR` will race.
+
+Open the URL Vite prints (typically `http://localhost:5173`).
+
+### Verify it works
+
+Drop a paired fixture into the watched directory:
+
+```sh
+cp fixtures/pairs/cointreau.* data/incoming/
+```
+
+Within a couple of seconds the worker logs that it's processing the pair, and the queue in the UI shows a new job moving through `queued` → `processing` → `processed` with extracted fields and per-field findings. Browser upload through the UI exercises the same code path.
 
 ## How the live deployment is updated
 
@@ -93,14 +128,36 @@ This is intentionally manual rather than CI/CD-driven; for a 3-day prototype the
 
 Clicking **Reset demo** in the UI runs the same flow: it truncates job/result/decision rows, deletes everything in `data/incoming/`, then reseeds the same three fixtures. Each Reset triggers three live Gemini extractions.
 
-## Assumptions and limitations
+## Prototype scope
 
-- One label image pairs with one application JSON. Multi-label-per-application (e.g., size variants) is out of scope; in the real COLA system each variant is a separate filing, so this is the COLA-correct unit.
-- The government warning is regulation-defined and lives in Layer 1 only; it is **not** part of the application data JSON.
-- Zip-archive ingestion with manifests, and out-of-band application-data lookup by COLA filing ID, are explicitly out of scope. A real production deployment would likely use both.
-- The model provider is wrapped behind a small interface; the prototype calls Gemini directly. A production deployment at TTB would route through a FedRAMP-authorized endpoint (Vertex AI Government or equivalent) — see ARCHITECTURE.md.
-- COLA-system integration is not in scope per the assignment.
-- Sensitive document retention is intentionally minimal; the prototype demonstrates the workflow without production-grade PII handling.
+System-level boundaries. These are deliberate framing choices, not implementation gaps.
+
+- **No authentication or authorization.** Single-tenant, single-user; no login, no roles, no audit identity. A real TTB deployment would integrate with TTB SSO, role-segregate inspector vs supervisor, and attribute every decision to a named reviewer.
+- **No user model.** Decisions are persisted but not attributed to an individual; the prototype demonstrates the adjudication mechanism, not the accountability layer a real COLA system requires.
+- **The reviewer workflow is modeled from public documentation, not from inspector shadowing.** Queue → job detail → adjudicate is a reasonable interpretation of TTB COLA pre-review drawn from the assignment material and public sources. It is not a faithful reproduction of what specific TTB inspectors do day-to-day; production work would start with shadowing.
+- **Regulatory coverage is illustrative, not exhaustive.** The Layer 1 rules (government warning text, mandatory-field presence, ABV format, net contents normalization) are drawn from a targeted reading of the relevant CFR sections. They do not cover all of 27 CFR Parts 4 / 5 / 7 — varietal rules for wine, age statements for distilled spirits, and class/type designation subtleties for malt beverages each have edges not modeled here. The architecture treats rules as data, so coverage expands without re-architecting the verifier.
+- **No COLA-system integration.** Application data arrives as a JSON file; a real deployment would fetch the application by filing ID from the COLA system.
+- **No production PII / retention / FedRAMP controls.** Postgres defaults only; no encryption-at-rest beyond the database, no retention policy, no FedRAMP/FIPS posture. A production deployment at TTB would route the model provider through a FedRAMP-authorized endpoint (Vertex AI Government or equivalent — see `ARCHITECTURE.md`) and add the document-handling controls a real submission flow requires.
+- **Single environment, US-market, English-only.** No staging/prod split; no non-ASCII labels; no non-US warnings.
+
+## Known limitations and scope decisions
+
+Within the prototype's scope: where the implementation deliberately stops short, and where features were scoped out at the boundary.
+
+### Implementation limitations
+
+- **Single-writer worker is operational, not enforced in code.** PM2 manages a single worker on the live VPS, so production is safe. Locally, running the worker process twice against the same database and `INCOMING_DIR` will race; reviewers should run only one worker.
+- **Stub-provider fallback is silent in the UI.** When `GEMINI_API_KEY` is unset the worker falls back to canned fixture extractions and logs `[worker] provider: StubLabelProvider`. The UI does not surface which provider produced a row. Production verified to use Gemini; local reviewers without a key see stub data.
+- **No retry/backoff on Gemini 429.** Gemini 3.1 Pro enforces 25 RPM regardless of spend. The worker does not retry; a burst that trips the limit fails the affected jobs with `lifecycle: failed` and the raw 429 in `failure_reason`. The 3-fixture demo seed stays well under in practice.
+
+### Scope decisions
+
+- **One label image pairs with one application JSON.** Multi-label-per-application (e.g., size variants) is out of scope; in the real COLA system each variant is a separate filing, so this is the COLA-correct unit.
+- **Browser upload is one pair at a time.** Batch ingestion uses the watched directory `data/incoming/`; the UI surfaces this path for local-install reviewers who want to drop many pairs.
+- **Adjudication is label-level only.** The reviewer's decision unit is one label → one decision (approve / reject / send_back). Per-finding overrides ("I accept this brand drift") are deliberate future work; the data model supports them but the prototype keeps the boundary at the label.
+- **Fixture set is six real bottles.** An exhaustive edge-case matrix (intentional warning violation, missing-back-panel, deliberately bad photography) was scoped out; reviewers exercise these scenarios via mismatched-pair uploads through the UI.
+- **No zip-archive or bundled-input ingestion.** Each pair arrives as two files — in a watched directory or via the upload form.
+- **The government warning is regulation-defined and lives in Layer 1 only; it is not part of the application data JSON.**
 
 ## Repo layout
 
