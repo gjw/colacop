@@ -30,16 +30,16 @@ Phases 1, 2, 4 can interleave. Phase 3 gated on phase 1. Phase 5 gates everythin
 
 Branch `task/64v-readme-final`, claim cc-64v.
 
-- [ ] Top: live URL above the fold + tagline + "right about why it might be wrong" stance paragraph (from ARCHITECTURE.md "Tool Positioning & Vocabulary").
-- [ ] Approach section rewrite: source→fact→requirement→use-case pipeline + recommendation-not-decision stance.
+- [x] Top: retitled to "agent-assisted TTB label pre-review"; live URL as blockquote above the fold; stance paragraph (recommendation-not-decision, "right about why it might be wrong") with pointer to ARCHITECTURE.md § Tool Positioning & Vocabulary.
+- [x] Approach: pipeline bullets + provenance walk subsection with real S/F/REQ IDs traced to UC-001 and ARCHITECTURE.md.
 - [x] Approach: runtime correctness one-liner (Bucket B from G3 — race-free upsert + rehydration).
-- [x] Local development section: G4 applied; spelled out nodenv → .env → docker → migrate → seed → three-terminal run; "Verify it works" step using `cointreau` fixture; `POSTGRES_PORT` note for collisions; single-worker reminder.
-- [x] **Prototype scope** section (system-level: auth, users, workflow fidelity, regulatory coverage, COLA fetch, FedRAMP/PII, single-environment + US-only).
-- [x] **Known limitations and scope decisions** section from G3 mapping (Bucket A under Implementation limitations, Bucket C under Scope decisions).
-- [ ] Provenance narrative per G7 (real S/F/REQ/UC IDs).
-- [ ] Pointers: assignment.md, discovery/sources/, facts.yaml, requirements.yaml, use-cases.yaml#UC-001, ARCHITECTURE.md, docs/handoff.md.
-- [ ] "How the live deployment is updated" — keep, tighten.
-- [ ] Screenshot placeholders (`docs/screenshots/queue.png`, etc.) so phase 3 just drops files.
+- [x] Local development section: G4 applied; three-terminal run; "Verify it works" step; `POSTGRES_PORT` note; single-worker reminder.
+- [x] **Prototype scope** section (system-level).
+- [x] **Known limitations and scope decisions** section from G3 mapping.
+- [x] **Provenance narrative** per G7 (inline, real S/F/REQ/UC IDs in the Approach Provenance walk subsection).
+- [x] Pointers: integrated inline rather than as a standalone section — UC-001 in Provenance walk, ARCHITECTURE.md § Tool Positioning & Vocabulary in stance paragraph, repo layout section retained for top-level files. Standalone Pointers section judged redundant.
+- [x] "How the live deployment is updated" — tightened: dropped apologetic preamble, collapsed idempotency notes, kept agave-as-known-issue.
+- [ ] Screenshot embedding (waiting on Chair's CleanShot output).
 - [ ] Hold cc-64v open until phases 3 + 4 complete.
 
 ## Phase 3 — Screenshots (gated on phase 1 live)
