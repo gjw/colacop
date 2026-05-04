@@ -752,6 +752,10 @@ function UploadForm({ onUploaded }: { onUploaded: () => void }): JSX.Element {
             arrives.
           </li>
         </ul>
+        <p className="upload-help-tip">
+          Running locally? Drop label/JSON pairs into{" "}
+          <code>data/incoming/</code> — the watcher picks them up.
+        </p>
       </div>
       <label>
         Label image (.jpg, .png, .webp){" "}
