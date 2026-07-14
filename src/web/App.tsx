@@ -752,6 +752,11 @@ function UploadForm({ onUploaded }: { onUploaded: () => void }): JSX.Element {
             arrives.
           </li>
         </ul>
+        <p>
+          Upload the image and JSON together to pair them; files sent in
+          separate uploads become separate jobs. (Arrive-in-either-order
+          pairing applies to the watched directory, not this form.)
+        </p>
         <p className="upload-help-tip">
           Running locally? Drop label/JSON pairs into{" "}
           <code>data/incoming/</code> — the watcher picks them up.

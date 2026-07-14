@@ -59,7 +59,7 @@ The tool ingests pairs of files: a label image (`.jpg`, `.jpeg`, `.png`, `.webp`
 
 Files in a pair may arrive in either order. If only the image is supplied, Layer 1 runs and Layer 2 reports `needs_application_data`; if only the JSON is supplied, the job is held until the image arrives.
 
-Submissions can be made by either dropping files into the watched `data/incoming/` directory or by uploading through the browser UI. Both paths produce the same internal representation.
+Submissions can be made by either dropping files into the watched `data/incoming/` directory or by uploading through the browser UI. Both paths produce the same internal representation. (Browser uploads are stamped with a generated stem per submission, so a pair must be uploaded together in one submission to be linked; either-order arrival applies to the watched-directory path.)
 
 Two runtime correctness properties worth flagging: the watcher's `INSERT ... ON CONFLICT (stem)` upsert handles chokidar burst-arrivals race-free at the database, and second-pass processing (JSON-after-image, or after a worker restart) rehydrates extracted fields from persisted Layer 1 rows rather than re-calling the model — one Gemini extraction per pair, not two.
 
